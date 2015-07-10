@@ -1,0 +1,87 @@
+SiteLogger
+	- load config settings
+		- server (address, alarm port, message port)
+		- delivery (# of retries and wait period in seconds)
+		- message threshold (seconds)
+		- connection retry (seconds)
+	- start senders
+		- alarm sender
+		- message sender
+	- start dataCollector
+		- create in_queue and out_alarm_queue
+		- connect to client ports
+		- if message in in_queue
+			- send to client
+			- on error, try resend (x) times (config setting)
+				- if unsuccessful, 
+					- create alarm notification (site not-accepting messages) in out_alarm_queue
+					- store in message file
+					- notify alarm sender
+		- collect alarm data in out_alarm_queue
+			- store in message file
+			- notify alarm sender
+		- collect message data
+			- store in message file
+			- notify message sender
+		* if connection failure
+			- create alarm notification (no comms) in out_alarm_queue
+			- store in message file
+			- notify alarm sender
+			- retry connection in 30 secs (config setting)
+			- send query for current state
+		* if no message in 30 secs (config setting)
+			- create alarm notification (no messages) in out_alarm_queue
+			- store in message file
+			- notify alarm sender
+			- disconnect and reconnect in 30 secs (config setting)
+			- send query for current state
+	- alarm sender
+		- receive notification
+		- read out_alarm_queue and send to server (alarm port)
+			- if unsuccessful
+				- try another server
+				- loop for all servers in config file
+			* if successful
+				- remove alarm from out_alarm_queue
+	- message sender
+                * on startup
+			- check if there are pending message files
+				- if pending files, start sending them to server (message port)
+		- receive notification
+			- read (top 10) pending message files and send to server (message port)
+				- if unsuccessful
+					- try another server
+					- loop for all servers in config file
+				* if successful
+					- delete message file
+		- if in-bound message received
+			- store in in_queue
+			- notify dataCollector
+
+
+MessageServer
+	- load config settings
+		- services (control port, time port, alarm port, message port)
+		- max connections (#)
+	- start server
+		- initialize control service
+		- initialize time service
+		- initialize alarm service
+		- initialize message service
+	- control service
+		- allow configuration update
+		- create logs of changes
+		- allow service add, remove, reset
+		- show config settings
+	- time service
+		- display time
+	- alarm service
+		- receive alarm messages (config file)
+		- store messages as pending (Alarm Pending)
+	- message service
+		- receive messages
+			- if message already received as alarm (ignore)
+			- store messages as pending (Incomming Pending)
+		- if outgoing message (Outgoing Pending)
+			- send messages back to client
+			- mark as sent
