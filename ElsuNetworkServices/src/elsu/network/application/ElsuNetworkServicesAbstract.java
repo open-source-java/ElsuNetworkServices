@@ -46,7 +46,6 @@ public abstract class ElsuNetworkServicesAbstract {
     //     }
     // }
     // </editor-fold>
-    
     // <editor-fold desc="class getter/setters">
     /**
      * getFactory() returns the current active factory instance. There is no
@@ -97,21 +96,9 @@ public abstract class ElsuNetworkServicesAbstract {
 
             // if user as provided command line arguments, parse them
             if (args.length > 0) {
-                // check if the argument is a file name, if so, this is a user
-                // custom config file.  check if the file exists before using
-                // it
-                File f = new File(args[0]);
-
-                if (f.exists()) {
-                    // set the global static APPCONFIG variable so the 
-                    // ServiceFactory when instantiated will use it
-                    ServiceFactory.APPCONFIG = args[0];
-                } else {
-                    // notify the user the configuration file specified is
-                    // invalid
-                    throw new IllegalArgumentException(
-                            ".. invalid configuration file (" + args[0] + ")");
-                }
+                // set the global static APPCONFIG variable so the 
+                // ServiceFactory when instantiated will use it
+                ServiceFactory.APPCONFIG = args[0];
             }
 
             // create ServiceFactory and store it in class variable.  since 
@@ -122,11 +109,11 @@ public abstract class ElsuNetworkServicesAbstract {
             // allow the ServiceFactory to initialize services stored in the
             // default app.config or user specified custom config
             getFactory().initializeServices();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             System.err.println("getClass().toString(), run(), "
                     + ex.getMessage());
             System.err.println(getClass().toString()
-                    + ", Usage: java -jar DGPSElsuDataLogger.jar "
+                    + ", Usage: java -jar <classname>.jar "
                     + "[./app.config] [/disabled]");
             System.exit(1);
         }

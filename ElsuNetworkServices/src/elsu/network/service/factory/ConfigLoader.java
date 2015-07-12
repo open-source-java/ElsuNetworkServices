@@ -102,6 +102,7 @@ public class ConfigLoader {
         } catch (Exception ex){
             // display exception to the user and exit
             System.out.println(getClass().toString() + "//" + ex.getMessage());
+            throw new Exception(getClass().toString() + ", initialize(), " + ex.getMessage());
         }
     }
 
