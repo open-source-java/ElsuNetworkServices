@@ -28,7 +28,7 @@ import java.util.*;
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public class ControlService extends ServiceAbstract implements IService {
+public class ControlService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
     // local storage for service shutdown string
@@ -54,7 +54,7 @@ public class ControlService extends ServiceAbstract implements IService {
      * @param factory
      * @param serviceConfig
      * @see ServiceFactory
-     * @see ServiceAbstract
+     * @see AbstractService
      * @see ServiceProperties
      * @see ServiceRuntimeProperties
      *
@@ -690,7 +690,7 @@ public class ControlService extends ServiceAbstract implements IService {
             }
             LocalAuthorizationCheck lValidation = new LocalAuthorizationCheck();
 
-            // Control ServiceAbstract implements a singleton pattern, only one client
+            // Control AbstractService implements a singleton pattern, only one client
             // can be connected at a time and ignores any config settings.
             // If there is already a client connected to this service, display
             // a message to this client and close the connection. We use a
@@ -864,8 +864,18 @@ public class ControlService extends ServiceAbstract implements IService {
      * @throws Exception
      */
     @Override
-    public void serve(ServiceConnectionAbstract conn) throws Exception {
+    public void serve(AbstractServiceConnection conn) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     // </editor-fold>
+
+    @Override
+    public void checkConnection(AbstractServiceConnection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void checkConnections() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

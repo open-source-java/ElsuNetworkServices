@@ -5,12 +5,12 @@ import elsu.common.*;
 import java.util.*;
 
 /**
- * ServiceRuntimePropertiesAbstract class is used to store runtime properties
- * for the service or service connections.
+ * AbstractServiceRuntimeProperties class is used to store runtime properties
+ for the service or service connections.
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public abstract class ServiceRuntimePropertiesAbstract {
+public abstract class AbstractServiceRuntimeProperties {
 
     // <editor-fold desc="class private storage">
     // count of active connections currently connected to the service

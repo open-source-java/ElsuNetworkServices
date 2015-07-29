@@ -26,7 +26,7 @@ import java.util.*;
  * 20141128 SSD updated for reflection generics warning on getDeclaredConstructor
  * 
  * @see ConfigLoader
- * @see ServiceAbstract
+ * @see AbstractService
  * @see IService
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  * @version .51
@@ -113,7 +113,7 @@ public class ServiceFactory extends ConfigLoader {
      * @param serviceName is the name of the service being searched and is
      * derived from the name property of the connection in the config file.
      *
-     * @return  <code>ServiceAbstract</code> object
+     * @return  <code>AbstractService</code> object
      */
     public synchronized IService getService(String serviceName) {
         IService result = null;
@@ -127,7 +127,7 @@ public class ServiceFactory extends ConfigLoader {
         // provided
         for (Integer key : svcList) {
             // key = port for the service
-            IService service = (ServiceAbstract) getServices().get(key);
+            IService service = (AbstractService) getServices().get(key);
 
             if (service.getServiceConfig().getServiceName().equals(serviceName)) {
                 result = service;
@@ -252,7 +252,7 @@ public class ServiceFactory extends ConfigLoader {
 
         // retrive the service object from the service list
         // if port does not exist, log error and return
-        ServiceAbstract service = (ServiceAbstract) getServices().get(key);
+        AbstractService service = (AbstractService) getServices().get(key);
         if (service == null) {
             return false;
         }
@@ -294,7 +294,7 @@ public class ServiceFactory extends ConfigLoader {
 
         // retrive the service object from the service list
         // if port does not exist, log error and return
-        ServiceAbstract svc = (ServiceAbstract) getServices().get(key);
+        AbstractService svc = (AbstractService) getServices().get(key);
         if (svc == null) {
             logError(getClass().toString() + "//startService//Port " + port
                     + " not found.");
@@ -548,7 +548,7 @@ public class ServiceFactory extends ConfigLoader {
             // Integer key = Integer.parseInt(svc.toString());
 
             // key = port for the service
-            ServiceAbstract service = (ServiceAbstract) getServices().get(key);
+            AbstractService service = (AbstractService) getServices().get(key);
 
             // call the service toString() method to get the service
             // string representation
