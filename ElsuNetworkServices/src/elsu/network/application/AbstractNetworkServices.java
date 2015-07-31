@@ -5,8 +5,8 @@ import java.io.*;
 import java.util.Collections.*;
 
 /**
- * ElsuNetworkServicesAbstract is the main class which is used to instantiate
- * user request for different services as defined in the app.config file.
+ * AbstractNetworkServices is the main class which is used to instantiate
+ user request for different services as defined in the app.config file.
  * <p>
  * Standard invocation is "java -jar NCSElsuNetworkServicesAbstract.jar". User
  * can specify following additional arguments:
@@ -22,7 +22,7 @@ import java.util.Collections.*;
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  * @version .51
  */
-public abstract class ElsuNetworkServicesAbstract {
+public abstract class AbstractNetworkServices {
 
     // <editor-fold desc="class private storage">
     // storage for factory instance; singleton pattern, only one factory can

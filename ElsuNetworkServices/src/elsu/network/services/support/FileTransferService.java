@@ -9,7 +9,7 @@ import java.util.regex.*;
 import java.security.*;
 import org.apache.commons.codec.binary.*;
 
-public class FileTransferService extends ServiceAbstract implements IService {
+public class FileTransferService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
     // storage for service shutdown string when received terminates the service
@@ -41,9 +41,9 @@ public class FileTransferService extends ServiceAbstract implements IService {
      * @param threadGroup
      * @param serviceConfig
      * @see ServiceFactory
-     * @see ServiceAbstract
+     * @see AbstractService
      * @see ServiceProperties
-     * @see ServiceConnectionAbstract
+     * @see AbstractServiceConnection
      * @see ServiceConnectionBasic
      * @see ServiceConnectionCustom
      */
@@ -714,7 +714,7 @@ public class FileTransferService extends ServiceAbstract implements IService {
      * @throws Exception
      */
     @Override
-    public void serve(ServiceConnectionAbstract conn) throws Exception {
+    public void serve(AbstractServiceConnection conn) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -730,4 +730,14 @@ public class FileTransferService extends ServiceAbstract implements IService {
         super.start();
     }
     // </editor-fold>
+
+    @Override
+    public void checkConnection(AbstractServiceConnection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void checkConnections() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
