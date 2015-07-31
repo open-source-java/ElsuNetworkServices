@@ -8,8 +8,8 @@ import java.io.*;
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public class GarbageCollectionService extends ServiceAbstract implements
-        IService {
+public class GarbageCollectionService extends AbstractService
+        implements IService {
 
     // <editor-fold desc="class private storage">
     // local storage for service shutdown string
@@ -48,7 +48,7 @@ public class GarbageCollectionService extends ServiceAbstract implements
             this._gcDelay = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
                             "service.garbage.collection.timer").toString());
-        } catch (Exception ex){
+        } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
@@ -94,7 +94,7 @@ public class GarbageCollectionService extends ServiceAbstract implements
                     ServiceConnection dsConn = new ServiceConnection(null, this);
                     addConnection(null, dsConn);
                 }
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 // log error for tracking
                 logError(getClass().toString() + ", checkConnections(), "
                         + getServiceConfig().getServiceName()
@@ -140,7 +140,7 @@ public class GarbageCollectionService extends ServiceAbstract implements
      * @throws Exception
      */
     @Override
-    public void serve(ServiceConnectionAbstract conn) throws Exception {
+    public void serve(AbstractServiceConnection conn) throws Exception {
         final ServiceConnection cConn = (ServiceConnection) conn;
 
         // this is to prevent socket to stay open after error
@@ -154,7 +154,7 @@ public class GarbageCollectionService extends ServiceAbstract implements
                 // force garbage collectio
                 System.gc();
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // log error for tracking
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -183,4 +183,9 @@ public class GarbageCollectionService extends ServiceAbstract implements
         checkConnections();
     }
     // </editor-fold>
+
+    @Override
+    public void checkConnection(AbstractServiceConnection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

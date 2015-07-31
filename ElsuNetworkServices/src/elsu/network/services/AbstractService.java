@@ -7,18 +7,18 @@ import java.net.*;
 import java.util.*;
 
 /**
- * ServiceAbstract is an abstract class providing base functions and storage for
+ * AbstractService is an abstract class providing base functions and storage for
  * properties. All core functions which control adding, removing, or shutting
  * down service objects like connections, child services, and listeners are
- * defined under ServiceAbstract base.
+ * defined under AbstractService base.
  * <p>
  * All concrete implementations of this class should override start() and
  * shutdown() functions to ensure local objects are closed properly.
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public abstract class ServiceAbstract extends ServicePropertiesAbstract
-        implements IService {
+public abstract class AbstractService extends AbstractServiceProperties
+        implements IServiceInternal, IService {
 
     // <editor-fold desc="class private storage">
     // storage for all child services; normally null.  if child service then
@@ -38,7 +38,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
     /**
      * Service(...) class constructor creates an instance of the service using
      * configuration properties loaded from app.config. The configuration is
-     * stored in the ServicePropertiesAbstract and runtime properties are stored
+     * stored in the AbstractServiceProperties and runtime properties are stored
      * in ServiceRuntimeProperties super classes.
      * <p>
      * Since all connections are created per service, the thread groups for the
@@ -49,10 +49,10 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
      * @param serviceConfig
      * @see ServiceFactory
      * @see ServiceListener
-     * @see ServicePropertiesAbstract
+     * @see AbstractServiceProperties
      * @see ServiceRuntimeProperties
      */
-    public ServiceAbstract(ServiceFactory factory, String threadGroup,
+    public AbstractService(ServiceFactory factory, String threadGroup,
             ServiceConfig serviceConfig) {
         // call the super class constructor
         super(factory, serviceConfig);
@@ -82,7 +82,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                     this._isListener = Boolean.valueOf(
                             getServiceConfig().getAttributes().get(
                                     "service.listener").toString());
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     logError(getClass().toString()
                             + ", initializeLocalProperties(), "
                             + getServiceConfig().getServiceName() + " on port "
@@ -161,7 +161,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
 
     /**
      * isListener() method returns the value true/false if the service is
-     * configured to instantiate a listener. ServiceAbstract Type of SERVER
+     * configured to instantiate a listener. AbstractService Type of SERVER
      * always shows the value = true. Other services can manually set this value
      * based on their needs by using the app.config attribute for the service.
      *
@@ -216,7 +216,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
      * @param connection
      */
     @Override
-    public synchronized void addConnection(ServiceConnectionAbstract connection) {
+    public synchronized void addConnection(AbstractServiceConnection connection) {
         addConnection(null, connection);
     }
 
@@ -231,7 +231,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
      */
     @Override
     public synchronized void addConnection(Socket socket,
-            ServiceConnectionAbstract connection) {
+            AbstractServiceConnection connection) {
         // if the max connection limit for the service is not zero and the 
         // total application connection count is greater than or equal to the 
         // max connections then raise exception
@@ -258,7 +258,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                         + ", addConnection(), connection refused to "
                         + socket.getInetAddress().getHostAddress()
                         + ":" + socket.getPort() + ": max connections reached");
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 // if there is an error during processing, log the error and
                 // close the connection
                 logError(getClass().toString() + ", addConnection(), "
@@ -268,7 +268,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                 // close the socket, ignore the exception
                 try {
                     socket.close();
-                } catch (Exception exi){
+                } catch (Exception exi) {
                 }
             }
         } else {
@@ -299,7 +299,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                             + socket.getInetAddress().getHostAddress()
                             + ":" + socket.getPort()
                             + ": max connections reached");
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     // if there is an error during processing, log the error and
                     // close the connection
                     logError(getClass().toString() + ", addConnection(), "
@@ -309,7 +309,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                     // close the socket, ignore the exception
                     try {
                         socket.close();
-                    } catch (Exception exi){
+                    } catch (Exception exi) {
                     }
                 }
             } else {
@@ -358,7 +358,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
 
                     // start the connection thread
                     connection.start();
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     // if exception, log the error, close the socket, and 
                     // release the connection
                     logError(getClass().toString() + ", addConnection(), "
@@ -368,39 +368,17 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                     // close the socket, ignore the exception
                     try {
                         socket.close();
-                    } catch (Exception exi){
+                    } catch (Exception exi) {
                     }
 
                     // signal the connection to close
                     try {
                         connection.isActive(false);
-                    } catch (Exception exi){
+                    } catch (Exception exi) {
                     }
                 }
             }
         }
-    }
-
-    /**
-     * checkConnection(...) method
-     *
-     * @param connection
-     */
-    @Override
-    public synchronized void checkConnection(
-            ServiceConnectionAbstract connection) {
-        // if not shutting down, loop through and check last message time
-        // if time exceeds threshold limit, disconnect
-    }
-
-    /**
-     * checkConnections() method
-     *
-     */
-    @Override
-    public synchronized void checkConnections() {
-        // if not shutting down, loop through and check last message time
-        // if time exceeds threshold limit, disconnect
     }
 
     /**
@@ -412,21 +390,21 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
      */
     @Override
     public synchronized void removeConnection(
-            ServiceConnectionAbstract connection) {
+            AbstractServiceConnection connection) {
         // check to make sure the connections streams are closed
         // they should be if this was called from a service
         try {
             if (connection.getClient() != null) {
                 try {
                     connection.getClient().getInputStream().close();
-                } catch (Exception exi){
+                } catch (Exception exi) {
                 }
                 try {
                     connection.getClient().getOutputStream().close();
-                } catch (Exception exi){
+                } catch (Exception exi) {
                 }
             }
-        } catch (Exception exi){
+        } catch (Exception exi) {
         }
 
         try {
@@ -438,7 +416,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                     + ", removeConnection(), connection to "
                     + connection.getClass().toString() + ", "
                     + connection.getName() + " removed");
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // log error based on the client status, catch (Exception ex)the
             // client goes into invalid state during disconnection
             try {
@@ -456,7 +434,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                             + " on port " + connection.getClient().getPort()
                             + " removed");
                 }
-            } catch (Exception exi){
+            } catch (Exception exi) {
             }
         } finally {
             // update the master counter used to track # of service and
@@ -511,8 +489,8 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
 
         // check if the service for the port exists, if no, then
         // return, cannot remove, return false signalling error
-        final ServiceAbstract service
-                = (ServiceAbstract) getChildServices().get(key);
+        final AbstractService service
+                = (AbstractService) getChildServices().get(key);
         if (service == null) {
             return false;
         }
@@ -549,7 +527,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
         isRunning(true);
 
         // if the service requires a listener, this is set in the service
-        // constructor or through super class ServicePropertiesAbstract when service
+        // constructor or through super class AbstractServiceProperties when service
         // is created
         if (isListener()) {
             // capture any exception during listener creation, duplication of
@@ -567,7 +545,7 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
                         + getServiceConfig().getServiceName()
                         + " listener activated ("
                         + getServiceConfig().getConnectionPort() + ")");
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 // if error, log error
                 logError(getClass().toString() + ", start(), "
                         + getServiceConfig().getServiceName() + " on port "
@@ -604,13 +582,13 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
             // use iterator for the connections list because removeConnection
             // method updates the list when removing connection and will cause
             // exception in the iterator
-            ArrayList<ServiceConnectionAbstract> al;
+            ArrayList<AbstractServiceConnection> al;
             al = new ArrayList<>(getConnections());
 
             // for each connection in the list
             for (Object o : al) {
                 // remove the connection, this also updates the master list
-                removeConnection((ServiceConnectionAbstract) o);
+                removeConnection((AbstractServiceConnection) o);
 
                 // yield processing to other threads
                 Thread.yield();
@@ -640,6 +618,33 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
     }
     // </editor-fold>
 
+    // <editor-fold desc="class methods not implemented">
+    @Override
+    public synchronized void checkConnection(
+            AbstractServiceConnection connection) {
+        logError(getClass().toString()
+                + ", checkConnection(), base class implementation - needs to be overriden");
+    }
+
+    @Override
+    public synchronized void checkConnections() {
+        logError(getClass().toString()
+                + ", checkConnections(), base class implementation - needs to be overriden");
+    }
+
+    @Override
+    public void serve(InputStream iStream, OutputStream oStream) throws Exception {
+        logError(getClass().toString()
+                + ", serve(), base class implementation - needs to be overriden");
+    }
+
+    @Override
+    public void serve(AbstractServiceConnection conn) throws Exception {
+        logError(getClass().toString()
+                + ", serve(), base class implementation - needs to be overriden");
+    }
+    // </editor-fold>
+
     @Override
     public synchronized String toString() {
         StringBuilder result = new StringBuilder();
@@ -665,8 +670,8 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
 
             for (Integer key : aKeys) {
                 // key = port for the service
-                ServiceAbstract service
-                        = (ServiceAbstract) getChildServices().get(key);
+                AbstractService service
+                        = (AbstractService) getChildServices().get(key);
 
                 result.append(service.toString());
 
@@ -674,10 +679,10 @@ public abstract class ServiceAbstract extends ServicePropertiesAbstract
             }
         }
         result.append("</childServices>");
-        
+
         result.append(super.toString());
         result.append("</object>");
-        
+
         return result.toString();
     }
 

@@ -5,21 +5,21 @@ import elsu.common.*;
 import java.util.*;
 
 /**
- * ServicePropertiesAbstract class is used to store the local properties used by
- * the service or it's connections or it's listener. This class provides a
+ * AbstractServiceProperties class is used to store the local properties used by
+ the service or it's connections or it's listener. This class provides a
  * direct access to the properties vice having the service to parse the
  * application attribute list or service attribute list which can degrade the
  * performance when high volume of data is processed.
  * <p>
- * This class is declared abstract to prevent concrete implementations which may
- * lead to security issue if the information is shared with other classes. The
- * class extends ServiceRuntimePropertiesAbstract class which stores the current
- * state of the service or its connections.
+ This class is declared abstract to prevent concrete implementations which may
+ lead to security issue if the information is shared with other classes. The
+ class extends AbstractServiceRuntimeProperties class which stores the current
+ state of the service or its connections.
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
- * @see ServiceRuntimePropertiesAbstract
+ * @see AbstractServiceRuntimeProperties
  */
-public abstract class ServicePropertiesAbstract extends ServiceRuntimePropertiesAbstract {
+public abstract class AbstractServiceProperties extends AbstractServiceRuntimeProperties {
 
     // <editor-fold desc="class private storage">
     // factory object which created the serice for back reference for support
@@ -30,7 +30,7 @@ public abstract class ServicePropertiesAbstract extends ServiceRuntimeProperties
     private volatile ServiceConfig _serviceConfig = null;
 
     // set/list of client connections active for the service
-    private volatile Set<ServiceConnectionAbstract> _connections = null;
+    private volatile Set<AbstractServiceConnection> _connections = null;
 
     // default date format to use by the service
     private volatile String _datetimeFormat = "yyyyMMddHHmmssS";
@@ -63,7 +63,7 @@ public abstract class ServicePropertiesAbstract extends ServiceRuntimeProperties
      * @param factory is the factory which created the service
      * @param serviceConfig is the configuration object loaded from app.config
      */
-    public ServicePropertiesAbstract(ServiceFactory factory,
+    public AbstractServiceProperties(ServiceFactory factory,
             ServiceConfig serviceConfig) {
         // store the factory for back-reference
         this._factory = factory;
@@ -108,7 +108,7 @@ public abstract class ServicePropertiesAbstract extends ServiceRuntimeProperties
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    public synchronized Set<ServiceConnectionAbstract> getConnections() {
+    public synchronized Set<AbstractServiceConnection> getConnections() {
         return this._connections;
     }
 

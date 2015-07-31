@@ -5,18 +5,18 @@ import java.net.*;
 
 /**
  * ServiceConnectionAbstractBasic class extends the base abstract class
- * ServiceConnectionAbstract to provide implementation for the thread run
- * method.
+ AbstractServiceConnection to provide implementation for the thread run
+ method.
  * <p>
  * The Thread run() method is overridden and socket streams are used to serve
  * the client connection. Service stream based method provides the core
  * processing (business logic) the the connection.
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
- * @see ServiceConnectionAbstract
+ * @see AbstractServiceConnection
  * @see Service
  */
-public class ServiceConnectionStream extends ServiceConnectionAbstract {
+public class ServiceConnectionStream extends AbstractServiceConnection {
 
     // <editor-fold desc="class constructor destructor">
     /**
