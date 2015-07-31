@@ -216,7 +216,7 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param connection
      */
     @Override
-    public synchronized void addConnection(AbstractServiceConnection connection) {
+    public synchronized void addConnection(AbstractConnection connection) {
         addConnection(null, connection);
     }
 
@@ -231,7 +231,7 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public synchronized void addConnection(Socket socket,
-            AbstractServiceConnection connection) {
+            AbstractConnection connection) {
         // if the max connection limit for the service is not zero and the 
         // total application connection count is greater than or equal to the 
         // max connections then raise exception
@@ -324,7 +324,7 @@ public abstract class AbstractService extends AbstractServiceProperties
                     // if connection is null, create a basic wrapper for the
                     // socket - stream based connection
                     if (connection == null) {
-                        connection = new ServiceConnectionStream(socket, this);
+                        connection = new Connection(socket, this);
                     }
 
                     // if the socket is not null, make sure the linger option
@@ -390,7 +390,7 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public synchronized void removeConnection(
-            AbstractServiceConnection connection) {
+            AbstractConnection connection) {
         // check to make sure the connections streams are closed
         // they should be if this was called from a service
         try {
@@ -582,13 +582,13 @@ public abstract class AbstractService extends AbstractServiceProperties
             // use iterator for the connections list because removeConnection
             // method updates the list when removing connection and will cause
             // exception in the iterator
-            ArrayList<AbstractServiceConnection> al;
+            ArrayList<AbstractConnection> al;
             al = new ArrayList<>(getConnections());
 
             // for each connection in the list
             for (Object o : al) {
                 // remove the connection, this also updates the master list
-                removeConnection((AbstractServiceConnection) o);
+                removeConnection((AbstractConnection) o);
 
                 // yield processing to other threads
                 Thread.yield();
@@ -621,7 +621,7 @@ public abstract class AbstractService extends AbstractServiceProperties
     // <editor-fold desc="class methods not implemented">
     @Override
     public synchronized void checkConnection(
-            AbstractServiceConnection connection) {
+            AbstractConnection connection) {
         logError(getClass().toString()
                 + ", checkConnection(), base class implementation - needs to be overriden");
     }
@@ -633,13 +633,7 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     @Override
-    public void serve(InputStream iStream, OutputStream oStream) throws Exception {
-        logError(getClass().toString()
-                + ", serve(), base class implementation - needs to be overriden");
-    }
-
-    @Override
-    public void serve(AbstractServiceConnection conn) throws Exception {
+    public void serve(AbstractConnection conn) throws Exception {
         logError(getClass().toString()
                 + ", serve(), base class implementation - needs to be overriden");
     }

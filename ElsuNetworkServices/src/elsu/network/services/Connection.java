@@ -5,17 +5,17 @@ import java.net.*;
 
 /**
  * ServiceConnectionAbstractCustom class extends the base abstract class
- AbstractServiceConnection to provide implementation for the thread run
+ AbstractConnection to provide implementation for the thread run
  method.
  * <p>
  * The Thread run() method is overridden and connection object is used to serve
  * the client connection.
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
- * @see AbstractServiceConnection
+ * @see AbstractConnection
  * @see Service
  */
-public class ServiceConnection extends AbstractServiceConnection {
+public class Connection extends AbstractConnection {
 
     // <editor-fold desc="class private storage">
     // local hashMap to store service or application properties by the 
@@ -32,7 +32,7 @@ public class ServiceConnection extends AbstractServiceConnection {
      *
      * @param service
      */
-    public ServiceConnection(IService service) {
+    public Connection(IService service) {
         super(service);
     }
 
@@ -45,7 +45,7 @@ public class ServiceConnection extends AbstractServiceConnection {
      * @param client
      * @param service
      */
-    public ServiceConnection(Socket client, IService service) {
+    public Connection(Socket client, IService service) {
         super(service);
 
         setClient(client);
@@ -83,7 +83,7 @@ public class ServiceConnection extends AbstractServiceConnection {
             // call the service method to perform processing for the client,
             // since this is a custom client, socket may not exist so we just
             // pass the entire connection object to the service to process
-            getService().serve((AbstractServiceConnection) this);
+            getService().serve((AbstractConnection) this);
         } catch (Exception ex){
             // log the error
             getService().logError(getClass().toString() + ", run(), "

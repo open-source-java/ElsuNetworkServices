@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 /**
- * AbstractServiceConnection() class is used to define the base / abstract
+ * AbstractConnection() class is used to define the base / abstract
  properties and methods for all connections. The class provides storage for
  * all common properties for the service connections.
  * <p>
@@ -18,7 +18,7 @@ import java.net.*;
  * @see ServiceConnectionCustom
  * @see Service
  */
-public abstract class AbstractServiceConnection extends Thread {
+public abstract class AbstractConnection extends Thread {
 
     // <editor-fold desc="class private storage">
     // service object which owns this connection
@@ -41,7 +41,7 @@ public abstract class AbstractServiceConnection extends Thread {
      *
      * @param service
      */
-    public AbstractServiceConnection(IService service) {
+    public AbstractConnection(IService service) {
         super(service.getThreadGroup(), "Connection:"
                 + service.getServiceConfig().getServiceName());
 

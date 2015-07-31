@@ -91,7 +91,7 @@ public class GarbageCollectionService extends AbstractService
         if (isRunning()) {
             try {
                 if (getConnections().isEmpty()) {
-                    ServiceConnection dsConn = new ServiceConnection(null, this);
+                    Connection dsConn = new Connection(null, this);
                     addConnection(null, dsConn);
                 }
             } catch (Exception ex) {
@@ -110,29 +110,13 @@ public class GarbageCollectionService extends AbstractService
     }
 
     /**
-     * serve(...) method is the optional method of the service which processes
-     * the client connection using the socket in and out streams.
-     * <p>
-     * Not used for this service, Not supported exception is thrown if executed.
-     *
-     * @param iStream
-     * @param oStream
-     * @throws Exception
-     */
-    @Override
-    public void serve(InputStream iStream, OutputStream oStream) throws
-            Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    /**
      * serve(...) method of the service which processes the client connection
      * which can be non socket based.
      * <p>
-     * This method as one function, to execute garbage collection to allow
+     * This method as function, to execute garbage collection to allow
      * orphaned objects to be collected quickly vice waiting for the VM to run.
      * Most of the objects in this API are one time use variables and with high
-     * volumne transactions from network clients, this can lead to heap
+     * volume transactions from network clients, this can lead to heap
      * out-of-memory or slow memory allocations due to high # of references in
      * stack.
      *
@@ -140,9 +124,7 @@ public class GarbageCollectionService extends AbstractService
      * @throws Exception
      */
     @Override
-    public void serve(AbstractServiceConnection conn) throws Exception {
-        final ServiceConnection cConn = (ServiceConnection) conn;
-
+    public void serve(AbstractConnection conn) throws Exception {
         // this is to prevent socket to stay open after error
         try {
             // loop as long as the service is running, since there is no 
@@ -185,7 +167,7 @@ public class GarbageCollectionService extends AbstractService
     // </editor-fold>
 
     @Override
-    public void checkConnection(AbstractServiceConnection connection) {
+    public void checkConnection(AbstractConnection connection) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

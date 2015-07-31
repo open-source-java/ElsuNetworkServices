@@ -30,7 +30,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     private volatile ServiceConfig _serviceConfig = null;
 
     // set/list of client connections active for the service
-    private volatile Set<AbstractServiceConnection> _connections = null;
+    private volatile Set<AbstractConnection> _connections = null;
 
     // default date format to use by the service
     private volatile String _datetimeFormat = "yyyyMMddHHmmssS";
@@ -108,7 +108,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    public synchronized Set<AbstractServiceConnection> getConnections() {
+    public synchronized Set<AbstractConnection> getConnections() {
         return this._connections;
     }
 

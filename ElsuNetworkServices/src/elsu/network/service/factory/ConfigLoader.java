@@ -99,7 +99,7 @@ public class ConfigLoader {
 
             // load the config into application or service properties hashMaps
             initializeConfig(false);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // display exception to the user and exit
             System.out.println(getClass().toString() + "//" + ex.getMessage());
             throw new Exception(getClass().toString() + ", initialize(), " + ex.getMessage());
@@ -125,7 +125,7 @@ public class ConfigLoader {
 
             // load the config into application or service properties hashMaps
             initializeConfig(true);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // display exception to the user and exit
             System.out.println(getClass().toString() + "//" + ex.getMessage());
         }
@@ -231,7 +231,7 @@ public class ConfigLoader {
 
                     // notify user the status of the config file
                     System.out.println("config file extracted successfully");
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     // if exception during processing, return it to the user
                     throw new Exception(getClass().toString() + "//"
                             + ex.getMessage());
@@ -239,18 +239,18 @@ public class ConfigLoader {
                     // close the input file to prevent resource leaks
                     try {
                         configIFile.close();
-                    } catch (Exception exi){
+                    } catch (Exception exi) {
                     }
 
                     // close the output file to prevent resource leaks
                     if (configOFile != null) {
                         try {
                             configOFile.flush();
-                        } catch (Exception exi){
+                        } catch (Exception exi) {
                         }
                         try {
                             configOFile.close();
-                        } catch (Exception exi){
+                        } catch (Exception exi) {
                         }
                     }
                 }
@@ -290,7 +290,7 @@ public class ConfigLoader {
                     _xmlr.getNodeValueByXPath(
                             "/application/services/service[@name='" + name
                             + "']/startupType")));
-        } catch (Exception ex){
+        } catch (Exception ex) {
             System.out.println(getClass().toString()
                     + ", loadBaseConfig(), invalid startupType, "
                     + ex.getMessage());
@@ -314,7 +314,7 @@ public class ConfigLoader {
                     _xmlr.getNodeValueByXPath(
                             "/application/services/service[@name='" + name
                             + "']/ignoreConnectionLimit")));
-        } catch (Exception ex){
+        } catch (Exception ex) {
             System.out.println(getClass().toString()
                     + ", loadBaseConfig(), invalid ignoreConnectionLimit, "
                     + ex.getMessage());
@@ -326,7 +326,7 @@ public class ConfigLoader {
                     _xmlr.getNodeValueByXPath(
                             "/application/services/service[@name='" + name
                             + "']/maxConnections")));
-        } catch (Exception ex){
+        } catch (Exception ex) {
             System.out.println(getClass().toString()
                     + ", loadBaseConfig(), invalid maxConnections, "
                     + ex.getMessage());
@@ -528,7 +528,7 @@ public class ConfigLoader {
                                                     + "']/services/childService[@name='"
                                                     + connection
                                                     + "']/startupType")));
-                        } catch (Exception ex){
+                        } catch (Exception ex) {
                             System.out.println(getClass().toString()
                                     + ", loadNodes(), invalid child service startupType, "
                                     + ex.getMessage());
@@ -557,7 +557,7 @@ public class ConfigLoader {
                                                     + "']/services/childService[@name='"
                                                     + connection
                                                     + "']/ignoreConnectionLimit")));
-                        } catch (Exception ex){
+                        } catch (Exception ex) {
                             System.out.println(getClass().toString()
                                     + ", loadNodes(), invalid child service ignoreConnectionLimit, "
                                     + ex.getMessage());
@@ -572,7 +572,7 @@ public class ConfigLoader {
                                                     + "']/services/childService[@name='"
                                                     + connection
                                                     + "']/maxConnections")));
-                        } catch (Exception ex){
+                        } catch (Exception ex) {
                             System.out.println(getClass().toString()
                                     + ", loadNodes(), invalid maxConnections, "
                                     + ex.getMessage());
@@ -677,16 +677,18 @@ public class ConfigLoader {
 
                 // loop through the attributes array and append them to the
                 // string builder object
-                for (Object na : nAttributes) {
+                if (nAttributes != null) {
+                    for (Object na : nAttributes) {
                     // append the attribute details (key/text) to the string
-                    // builder object
-                    sb.append(" [ATTR=").append(((org.w3c.dom.Node) na).getNodeName())
-                            .append("//")
-                            .append(((org.w3c.dom.Node) na).getNodeValue())
-                            .append("]");
+                        // builder object
+                        sb.append(" [ATTR=").append(((org.w3c.dom.Node) na).getNodeName())
+                                .append("//")
+                                .append(((org.w3c.dom.Node) na).getNodeValue())
+                                .append("]");
 
-                    // yield processing to other threads
-                    Thread.yield();
+                        // yield processing to other threads
+                        Thread.yield();
+                    }
                 }
 
                 // return the string builder representation as a string

@@ -645,29 +645,26 @@ public class ControlService extends AbstractService implements IService {
      * This method is used by the client to send commands which are executed on
      * the server.
      *
-     * @param iStream
-     * @param oStream
+     * @param conn
      * @throws Exception
      */
     @Override
-    public void serve(InputStream iStream, OutputStream oStream) throws
-            Exception {
-        // create bufferred reader reference for the input stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        BufferedReader in = null;
+    public void serve(AbstractConnection conn) throws Exception {
+        // local parameter for reader thread access, passes the connection 
+        // object
+        final Connection cConn = (Connection) conn;
 
-        // create print writer reference for the output stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        PrintWriter out = null;
+        // local parameter for reader thread access, passes the socket in stream
+        final BufferedReader in = new BufferedReader(new InputStreamReader(
+                cConn.getClient().getInputStream()));
+
+        // local parameter for reader thread access, passes the socket out 
+        // stream
+        final PrintWriter out = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(cConn.getClient().getOutputStream())));
 
         // this is to prevent socket to stay open after error
         try {
-            in = new BufferedReader(new InputStreamReader(iStream));
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
-                    oStream)));
-
             // flag to monitor if the client authenticated
             boolean authorized = false;
 
@@ -833,11 +830,10 @@ public class ControlService extends AbstractService implements IService {
         } finally {
             // close out all open in/out streams.
             try {
-                out.flush();
-            } catch (Exception exi) {
-            }
-
-            try {
+                try {
+                    out.flush();
+                } catch (Exception exi) {
+                }
                 out.close();
             } catch (Exception exi) {
             }
@@ -853,24 +849,10 @@ public class ControlService extends AbstractService implements IService {
             // -- is closed.
         }
     }
-
-    /**
-     * serve(...) method is the optional method of the service which processes
-     * the client connection which can be not socket based.
-     * <p>
-     * Not used for this service, Not supported exception is thrown if executed.
-     *
-     * @param conn
-     * @throws Exception
-     */
-    @Override
-    public void serve(AbstractServiceConnection conn) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     // </editor-fold>
 
     @Override
-    public void checkConnection(AbstractServiceConnection connection) {
+    public void checkConnection(AbstractConnection connection) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

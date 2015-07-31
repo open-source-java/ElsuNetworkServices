@@ -28,14 +28,11 @@ public interface IService {
     public void logInfo(Object obj);
 
     public void addConnection(Socket socket,
-            AbstractServiceConnection connection) throws Exception;
+            AbstractConnection connection) throws Exception;
 
     public ThreadGroup getThreadGroup();
 
-    public void removeConnection(AbstractServiceConnection conn);
+    public void removeConnection(AbstractConnection conn);
 
-    public void serve(InputStream iStream, OutputStream oStream) throws
-            Exception;
-
-    public void serve(AbstractServiceConnection conn) throws Exception;
+    public void serve(AbstractConnection conn) throws Exception;
 }

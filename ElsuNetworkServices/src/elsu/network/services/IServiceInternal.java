@@ -18,10 +18,10 @@ import java.util.*;
  */
 public interface IServiceInternal {
 
-    public void addConnection(AbstractServiceConnection connection) throws
+    public void addConnection(AbstractConnection connection) throws
             Exception;
 
-    public void checkConnection(AbstractServiceConnection conn);
+    public void checkConnection(AbstractConnection conn);
 
     public void checkConnections();
 
