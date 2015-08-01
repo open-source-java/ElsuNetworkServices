@@ -253,7 +253,7 @@ public class FileTransferService extends AbstractService implements IService {
                                     }
 
                                     // local variables for process tracking
-                                    FileChannelReaderAbstract fcReader = null;
+                                    AbstractFileChannelReader fcReader = null;
                                     long ftSize = 0L;
                                     long bytesSent = 0L;
 

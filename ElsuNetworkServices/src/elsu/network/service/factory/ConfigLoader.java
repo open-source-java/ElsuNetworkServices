@@ -30,14 +30,18 @@ public class ConfigLoader {
 
     // static property for app.config store and extraction from jar file
     public static String APPCONFIG = "app.config";
+    
     // static property for data format across the application for display 
     // purposes
     public static String DTGFORMAT = "YYYMMDD HH24:mm:ss";
+    
     // variable to store the xml document object from XMLReader class
     protected XMLReader _xmlr = null;
+    
     // store all application wide properties from app.config
     private Map<String, String> _applicationProperties
             = new HashMap<>();
+    
     // store all service configuration properties from app.config
     private Map<String, Object> _serviceProperties
             = new HashMap<>();
