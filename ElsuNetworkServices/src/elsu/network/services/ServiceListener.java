@@ -1,5 +1,6 @@
 package elsu.network.services;
 
+import elsu.network.services.core.IService;
 import java.io.*;
 import java.net.*;
 
@@ -189,7 +190,7 @@ public class ServiceListener extends Thread {
      * to false.
      *
      */
-    protected synchronized void shutdown() {
+    public synchronized void shutdown() {
         // update the status to false so the listener will not acivate itself
         this.isActive(false);
 

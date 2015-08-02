@@ -1,5 +1,7 @@
 package elsu.network.services;
 
+import elsu.network.services.core.IService;
+import elsu.network.services.core.AbstractConnection;
 import java.util.*;
 import java.net.*;
 

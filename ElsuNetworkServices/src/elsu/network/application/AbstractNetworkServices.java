@@ -1,6 +1,6 @@
 package elsu.network.application;
 
-import elsu.network.service.factory.*;
+import elsu.network.factory.ServiceFactory;
 import java.io.*;
 import java.util.Collections.*;
 

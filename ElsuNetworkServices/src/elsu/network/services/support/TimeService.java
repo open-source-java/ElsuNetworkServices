@@ -1,7 +1,11 @@
 package elsu.network.services.support;
 
+import elsu.network.services.core.ServiceConfig;
+import elsu.network.services.core.IService;
+import elsu.network.services.core.AbstractService;
+import elsu.network.services.core.AbstractConnection;
+import elsu.network.factory.ServiceFactory;
 import elsu.network.services.*;
-import elsu.network.service.factory.*;
 import java.io.*;
 import java.util.*;
 
@@ -35,10 +39,10 @@ public class TimeService extends AbstractService implements IService {
      *
      */
     private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getApplicationProperties().get(
+        this._serviceShutdown = getFactory().getConfig().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getApplicationProperties().get(
+                = getFactory().getConfig().getProperty(
                         "connection.terminator").toString();
     }
     // </editor-fold>

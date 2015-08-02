@@ -12,3 +12,5 @@
 hs_err_pid*
 
 # local compiler properties
+/ElsuNetworkServicesUnitTest/nbproject/private/
+/ElsuNetworkServicesUnitTest/build/
