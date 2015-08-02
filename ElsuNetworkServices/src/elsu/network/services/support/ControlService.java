@@ -192,21 +192,16 @@ public class ControlService extends AbstractService implements IService {
         // use iterator because the list is being modified while processing and
         // will result in invalid condition
         ArrayList<String> spIterator;
-        spIterator = new ArrayList<>(configTemp.getProperties().keySet());
+        spIterator = new ArrayList<>(configTemp.getClassSet());
 
         // for service config each item in the iterator, process the service
-        for (Object spObject : spIterator) {
+        for (String spObject : spIterator) {
             // convert the object as config item
             ServiceConfig configObject;
-            configObject = (ServiceConfig) configTemp.getProperties().get(
-                    spObject);
+            configObject = ServiceConfig.LoadConfig(configTemp, spObject);
 
             // if the service startup is not configured as disabled, process it
             if (configObject.getStartupType() != ServiceStartupType.DISABLED) {
-                // add the configObject to the core service properties
-                getServiceProperties().put(configObject.getServiceName(),
-                        configObject);
-
                 // activate the service and add it to the local list
                 serviceList.add(activateService(configObject, out));
 
@@ -297,13 +292,13 @@ public class ControlService extends AbstractService implements IService {
         // local list to track the services which were created through this
         // method and copies the existing properties of the service configurations
         ArrayList<String> spIterator;
-        spIterator = new ArrayList<>(getServiceProperties().keySet());
+        spIterator = new ArrayList<>(getFactory().getConfig().getClassSet());
 
         // for service config each item in the iterator, process the service
         for (String spObject : spIterator) {
-            // copy config properties to new object and add the object to the list
-            ServiceConfig configObject
-                    = ((ServiceConfig) getServiceProperties().get(spObject)).clone();
+            // convert the object as config item
+            ServiceConfig configObject;
+            configObject = ServiceConfig.LoadConfig(getFactory().getConfig(), spObject);
 
             // if the service startup is not configured as disabled, process it
             if (configObject.getStartupType() != ServiceStartupType.DISABLED) {

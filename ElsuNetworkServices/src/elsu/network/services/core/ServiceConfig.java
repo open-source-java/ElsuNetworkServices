@@ -307,24 +307,20 @@ public class ServiceConfig {
         sc.setMaximumConnections(Integer.valueOf(config.getProperty(serviceName + ".maxConnections").toString()));
 
         // copy of collector configurations from the original object
-        for (String attrKey : config.getProperties().keySet()) {
-            if (attrKey.startsWith(serviceName + ".") && attrKey.endsWith(".class")) {
-                childServiceName = attrKey.replace(".class", "");
-                if (config.getProperty(childServiceName + ".serviceType").toString().equals("SUBSCRIBER")) {
-                    childConfig = ServiceConfig.LoadConfig(config, childServiceName);
-                    sc.getSubscribers().add(childConfig);
-                }
+        for (String attrKey : config.getClassSet(serviceName + ".")) {
+            childServiceName = attrKey.replace(".class", "");
+            if (config.getProperty(childServiceName + ".serviceType").toString().equals("SUBSCRIBER")) {
+                childConfig = ServiceConfig.LoadConfig(config, childServiceName);
+                sc.getSubscribers().add(childConfig);
             }
         }
 
         // copy of distributor configurations from the original object
-        for (String attrKey : config.getProperties().keySet()) {
-            if (attrKey.startsWith(serviceName + ".") && attrKey.endsWith(".class")) {
-                childServiceName = attrKey.replace(".class", "");
-                if (config.getProperty(childServiceName + ".serviceType").toString().equals("PUBLISHER")) {
-                    childConfig = ServiceConfig.LoadConfig(config, childServiceName);
-                    sc.getPublishers().add(childConfig);
-                }
+        for (String attrKey : config.getClassSet(serviceName + ".")) {
+            childServiceName = attrKey.replace(".class", "");
+            if (config.getProperty(childServiceName + ".serviceType").toString().equals("PUBLISHER")) {
+                childConfig = ServiceConfig.LoadConfig(config, childServiceName);
+                sc.getPublishers().add(childConfig);
             }
         }
 

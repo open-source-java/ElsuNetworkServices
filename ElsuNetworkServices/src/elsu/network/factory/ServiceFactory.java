@@ -41,8 +41,6 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
     // <editor-fold desc="class private storage">
     // configuration reference object
     private ConfigLoader _config = null;
-    // hashMap for all service configs
-    private volatile Map<String, ServiceConfig> _serviceConfigs;
     // hashMap to track all services created 
     private volatile Map<Integer, IService> _services;
     // master connection limit
@@ -101,7 +99,6 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                     + ex.getMessage());
         }
 
-        this._serviceConfigs = new HashMap<>();
         this._services = new HashMap<>();
     }
     // </editor-fold>
@@ -398,120 +395,113 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
             // do not use iterator since control service can change the scope
             // of the iterate and will result in exceptions.
             ArrayList<String> spIterator;
-            spIterator = new ArrayList<>(getConfig().getProperties().keySet());
+            spIterator = new ArrayList<>(getConfig().getClassSet());
 
             // loop through all the services in the service list
             for (String spObject : spIterator) {
-                if (spObject.endsWith(".class")) {
-                    serviceName = spObject.replace(".class", "");
+                serviceName = spObject.replace(".class", "");
 
-                    // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
-                    if (getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
-                            || getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
-                        // ignore this class type
-                    } else {
-                        config = ServiceConfig.LoadConfig(getConfig(), serviceName);
-                        _serviceConfigs.put(serviceName, config);
+                // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
+                if (getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
+                        || getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
+                    // ignore this class type
+                } else {
+                    // extract the service properties for parsing
+                    config = ServiceConfig.LoadConfig(getConfig(), serviceName);
+
+                    // control service is a custom service and there does not use
+                    // reflection but direct instantiation.
+                    if (config.getServiceClass().equals(
+                            "elsu.network.services.support.ControlService")) {
+                        // is the service disabled, if not create an instance of
+                        // the service
+                        if (config.getStartupType() != ServiceStartupType.DISABLED) {
+                            // log the action
+                            notifyListeners(new EventObject(this), StatusType.INFORMATION,
+                                    ".. service activated (" + spObject.toString() + ")",
+                                    config);
+
+                            // create the service instance
+                            IService service = new ControlService(this, config);
+
+                            // add the service to the service list in the factory
+                            addService(service, config.getConnectionPort());
+                        }
+                    } else if (config.getStartupType() != ServiceStartupType.DISABLED) {
+                         // service is not control service, so if it is not 
+                        // disabled process the service properties
+
+                        // log the action
+                        notifyListeners(new EventObject(this), StatusType.INFORMATION,
+                                ".. service activated (" + spObject.toString() + ")",
+                                config);
+
+                        // using reflection, load the class for the service
+                        Class<?> serviceClass = Class.forName(config.getServiceClass());
+
+                        // create service constructor discovery type parameter array
+                        // populate it with the required class types
+                        Class<?>[] argTypes = {ServiceFactory.class, String.class,
+                            ServiceConfig.class};
+
+                        // retrieve the matching constructor for the service using
+                        // reflection
+                        Constructor<?> cons = serviceClass.getDeclaredConstructor(
+                                argTypes);
+
+                        // create parameter array and populate it with values to 
+                        // pass to the service constructor
+                        Object[] arguments
+                                = {this, config.getServiceClass(), config};
+
+                        // create new instance of the service using the discovered
+                        // constructor and parameters
+                        IService service = (IService) cons.newInstance(arguments);
+
+                        // add the service to the service list in the factory
+                        addService(service, config.getConnectionPort());
                     }
+
+                    // yield processing to other threads
+                    Thread.yield();
                 }
+
+                // since all the services which were not disabled were already 
+                // loaded and services which were Automatic were started previously
+                // we need to now start the services marked DelayedStart.
+                // collect the list of all services into array list for processing
+                // do not use iterator since control service can change the scope
+                // of the iterate and will result in exceptions.
+                List<IService> serviceList;
+                serviceList = new ArrayList<>(getServices().values());
+
+                // loop through all the services in the service list
+                for (IService svc : serviceList) {
+                    // if the service is marked delayed start, process the service
+                    if (svc.getServiceConfig().getStartupType()
+                            == ServiceStartupType.DELAYEDSTART) {
+                        // temporarily update the service startup type to Automatic
+                        // so we can use the common start method
+                        svc.getServiceConfig().setStartupType(
+                                ServiceStartupType.AUTOMATIC);
+
+                        // start the service.  we do not need to add the service,
+                        // just start it.
+                        svc.start();
+
+                        // reset the service startup type back to DelayedStart
+                        svc.getServiceConfig().setStartupType(
+                                ServiceStartupType.DELAYEDSTART);
+                    }
+
+                    // yield processing to other threads
+                    Thread.yield();
+                }
+
+                // clear the service list to allow garbage collection to recover
+                // the memory
+                serviceList = null;
             }
-
-            /*
-             // extract the service properties for parsing
-             config = (ServiceConfig) getServiceProperties().get(spObject);
-
-             // control service is a custom service and there does not use
-             // reflection but direct instantiation.
-             if (config.getServiceClass().equals(
-             "elsu.network.services.support.ControlService")) {
-             // is the service disabled, if not create an instance of
-             // the service
-             if (config.getStartupType() != ServiceStartupType.DISABLED) {
-             // log the action
-             Log4JManager.LOG.info(".. service activated ("
-             + spObject.toString() + ")");
-
-             // create the service instance
-             IService service = new ControlService(this, config);
-
-             // add the service to the service list in the factory
-             addService(service, config.getConnectionPort());
-             }
-             } else if (config.getStartupType()
-             != ServiceStartupType.DISABLED) {
-             // service is not control service, so if it is not 
-             // disabled process the service properties
-
-             // log the action
-             Log4JManager.LOG.info(".. service activated ("
-             + spObject.toString() + ")");
-
-             // using reflection, load the class for the service
-             Class<?> serviceClass = Class.forName(config.getServiceClass());
-
-             // create service constructor discovery type parameter array
-             // populate it with the required class types
-             Class<?>[] argTypes = {ServiceFactory.class, String.class,
-             ServiceConfig.class};
-
-             // retrieve the matching constructor for the service using
-             // reflection
-             Constructor<?> cons = serviceClass.getDeclaredConstructor(
-             argTypes);
-
-             // create parameter array and populate it with values to 
-             // pass to the service constructor
-             Object[] arguments
-             = {this, config.getServiceClass(), config};
-
-             // create new instance of the service using the discovered
-             // constructor and parameters
-             IService service = (IService) cons.newInstance(arguments);
-
-             // add the service to the service list in the factory
-             addService(service, config.getConnectionPort());
-             }
-
-             // yield processing to other threads
-             Thread.yield();
-             }
-
-             // since all the services which were not disabled were already 
-             // loaded and services which were Automatic were started previously
-             // we need to now start the services marked DelayedStart.
-             // collect the list of all services into array list for processing
-             // do not use iterator since control service can change the scope
-             // of the iterate and will result in exceptions.
-             List<IService> serviceList;
-             serviceList = new ArrayList<>(getServices().values());
-
-             // loop through all the services in the service list
-             for (IService svc : serviceList) {
-             // if the service is marked delayed start, process the service
-             if (svc.getServiceConfig().getStartupType()
-             == ServiceStartupType.DELAYEDSTART) {
-             // temporarily update the service startup type to Automatic
-             // so we can use the common start method
-             svc.getServiceConfig().setStartupType(
-             ServiceStartupType.AUTOMATIC);
-
-             // start the service.  we do not need to add the service,
-             // just start it.
-             svc.start();
-
-             // reset the service startup type back to DelayedStart
-             svc.getServiceConfig().setStartupType(
-             ServiceStartupType.DELAYEDSTART);
-             }
-
-             // yield processing to other threads
-             Thread.yield();
-             }
-
-             // clear the service list to allow garbage collection to recover
-             // the memory
-             serviceList = null;
-             */
         } catch (Exception ex) {
             // log error if there was any exception in processing during
             // reflection or parameter discovery and throw it to allow calling
@@ -661,7 +651,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
     }
 
     @Override
-    public void EventHandler(EventObject e, StatusType s, String message, Object o) {
+    public synchronized void EventHandler(EventObject e, StatusType s, String message, Object o) {
         switch (s) {
             case DEBUG:
                 getConfig().logDebug(message);
