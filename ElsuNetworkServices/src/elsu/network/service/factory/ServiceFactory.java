@@ -23,17 +23,20 @@ import java.util.*;
  * services under one parent service when multiple actions have common
  * configuration properties.
  *
- * 20141128 SSD updated for reflection generics warning on getDeclaredConstructor
- * 
+ * 20141128 SSD updated for reflection generics warning on
+ * getDeclaredConstructor
+ *
  * @see ConfigLoader
  * @see AbstractService
  * @see IService
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  * @version .51
  */
-public class ServiceFactory extends ConfigLoader {
+public class ServiceFactory extends AbstractEventPublisher implements IEventPublisher, IEventSubscriber {
 
     // <editor-fold desc="class private storage">
+    // configuration reference object
+    private ConfigLoader _config = null;
     // hashMap to track all services created 
     private volatile Map<Integer, IService> _services;
     // master connection limit
@@ -54,8 +57,22 @@ public class ServiceFactory extends ConfigLoader {
      * @throws java.lang.Exception
      * @see ConfigLoader
      */
-    public ServiceFactory(OutputStream logStream) throws Exception {
-        super();
+    public ServiceFactory() throws Exception {
+        setConfig();
+
+        // load configuration properties
+        initializeLocalProperties();
+    }
+
+    public ServiceFactory(String config) throws Exception {
+        setConfig(config);
+
+        // load configuration properties
+        initializeLocalProperties();
+    }
+
+    public ServiceFactory(String config, String[] suppresspath) throws Exception {
+        setConfig(config, suppresspath);
 
         // load configuration properties
         initializeLocalProperties();
@@ -70,8 +87,8 @@ public class ServiceFactory extends ConfigLoader {
     private void initializeLocalProperties() {
         try {
             this._maximumConnections = Integer.parseInt(
-                    (String) getApplicationProperties().get("connection.maximum"));
-        } catch (Exception ex){
+                    getConfig().getProperty("connection.maximum").toString());
+        } catch (Exception ex) {
             this._maximumConnections = 10;
             logError(getClass().toString()
                     + ", initializeLocalProperties(), invalid connection.maximum, "
@@ -83,6 +100,39 @@ public class ServiceFactory extends ConfigLoader {
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
+    public ConfigLoader getConfig() {
+        return this._config;
+    }
+
+    private void setConfig() {
+        try {
+            this._config = new ConfigLoader("", new String[]{
+                "application.framework.attributes.key.",
+                "application.services.service.", "application.childServices."});
+        } catch (Exception ex) {
+
+        }
+    }
+
+    private void setConfig(String config) {
+        try {
+            this._config = new ConfigLoader(config,
+                    new String[]{
+                        "application.framework.attributes.key.",
+                        "application.services.service.", "application.childServices."});
+        } catch (Exception ex) {
+
+        }
+    }
+
+    private void setConfig(String config, String[] suppressPath) {
+        try {
+            this._config = new ConfigLoader(config, suppressPath);
+        } catch (Exception ex) {
+
+        }
+    }
+
     /**
      * getMaximumConnections() returns the value of the maximum connnections.
      * This is the maximum limit of connections from all services, including
@@ -331,6 +381,7 @@ public class ServiceFactory extends ConfigLoader {
      * @throws Exception
      */
     public void initializeServices() throws Exception {
+/*
         try {
             ServiceConfig config;
 
@@ -338,10 +389,10 @@ public class ServiceFactory extends ConfigLoader {
             // do not use iterator since control service can change the scope
             // of the iterate and will result in exceptions.
             ArrayList<String> spIterator;
-            spIterator = new ArrayList<>(getServiceProperties().keySet());
+            spIterator = new ArrayList<>(getConfig().getProperties().keySet());
 
             // loop through all the services in the service list
-            for (Object spObject : spIterator) {
+            for (String spObject : spIterator) {
                 // extract the service properties for parsing
                 config = (ServiceConfig) getServiceProperties().get(spObject);
 
@@ -436,7 +487,7 @@ public class ServiceFactory extends ConfigLoader {
             // clear the service list to allow garbage collection to recover
             // the memory
             serviceList = null;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // log error if there was any exception in processing during
             // reflection or parameter discovery and throw it to allow calling
             // function to handle it
@@ -444,6 +495,7 @@ public class ServiceFactory extends ConfigLoader {
                     + ex.getMessage());
             throw new Exception(ex.getMessage());
         }
+*/
     }
 
     /**
@@ -484,7 +536,7 @@ public class ServiceFactory extends ConfigLoader {
      * the log file
      */
     public synchronized void logDebug(Object info) {
-        Log4JManager.LOG.debug(info.toString());
+        getConfig().logDebug(info.toString());
     }
 
     /**
@@ -499,7 +551,7 @@ public class ServiceFactory extends ConfigLoader {
      * the log file
      */
     public synchronized void logError(Object info) {
-        Log4JManager.LOG.error(info.toString());
+        getConfig().logError(info.toString());
     }
 
     /**
@@ -514,7 +566,7 @@ public class ServiceFactory extends ConfigLoader {
      * the log file
      */
     public synchronized void logInfo(Object info) {
-        Log4JManager.LOG.info(info.toString());
+        getConfig().logInfo(info.toString());
     }
     // </editor-fold>
 
@@ -560,7 +612,7 @@ public class ServiceFactory extends ConfigLoader {
 
         // store the local factory configuration properties
         result.append("</services>");
-        
+
         result.append("<maxConnections>").append(getMaximumConnections()).append("</maxConnections>");
         result.append("<active>").append(getServiceConnections()).append("</active>");
 
@@ -582,5 +634,22 @@ public class ServiceFactory extends ConfigLoader {
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
         out.flush();
+    }
+
+    @Override
+    public void EventHandler(EventObject e, StatusType s, String message, Object o) {
+        switch (s) {
+            case DEBUG:
+                getConfig().logDebug(message);
+                break;
+            case ERROR:
+                getConfig().logError(message);
+                break;
+            case INFORMATION:
+                getConfig().logInfo(message);
+                break;
+            default:
+                break;
+        }
     }
 }

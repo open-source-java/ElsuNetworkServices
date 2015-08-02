@@ -86,23 +86,23 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
      *
      */
     private void initializeLocalProperties() {
-        this._datetimeFormat = getApplicationProperties().get(
+        this._datetimeFormat = getProperties().get(
                 "message.datetimeFormat").toString();
-        this._fieldDelimiter = getApplicationProperties().get(
+        this._fieldDelimiter = getProperties().get(
                 "record.field.delimiter").toString();
-        this._recordTerminator = getApplicationProperties().get(
+        this._recordTerminator = getProperties().get(
                 "record.terminator").toString();
         this._statusOk
-                = getApplicationProperties().get("connection.status.ok").toString();
-        this._statusInvalidContent = getApplicationProperties().get(
+                = getProperties().get("connection.status.ok").toString();
+        this._statusInvalidContent = getProperties().get(
                 "connection.status.invalidContent").toString();
-        this._statusUnAuthorized = getApplicationProperties().get(
+        this._statusUnAuthorized = getProperties().get(
                 "connection.status.unauthorized").toString();
-        this._statusRequestTimeout = getApplicationProperties().get(
+        this._statusRequestTimeout = getProperties().get(
                 "connection.status.requestTimeout").toString();
-        this._statusDatabaseError = getApplicationProperties().get(
+        this._statusDatabaseError = getProperties().get(
                 "connection.status.databaseError").toString();
-        this._statusSystemError = getApplicationProperties().get(
+        this._statusSystemError = getProperties().get(
                 "connection.status.systemError").toString();
     }
     // </editor-fold>
@@ -152,8 +152,8 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return getFactory().getServiceConnections();
     }
 
-    public synchronized Map<String, Object> getServiceProperties() {
-        return getFactory().getServiceProperties();
+    public synchronized Map<String, Object> getProperties() {
+        return getFactory().getConfig().getProperties();
     }
 
     public synchronized String getStatusDatabaseError() {
@@ -193,10 +193,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
 
     public synchronized void increaseServiceConnections() {
         getFactory().increaseServiceConnections();
-    }
-
-    public synchronized Map getApplicationProperties() {
-        return getFactory().getApplicationProperties();
     }
     // </editor-fold>
 

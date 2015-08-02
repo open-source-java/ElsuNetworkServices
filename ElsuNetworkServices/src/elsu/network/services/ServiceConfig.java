@@ -1,5 +1,6 @@
 package elsu.network.services;
 
+import elsu.support.*;
 import java.util.*;
 
 /**
@@ -284,6 +285,58 @@ public class ServiceConfig {
 
         // return the new object
         return copyConfig;
+    }
+
+    public static ServiceConfig LoadConfig(ConfigLoader config, String service)
+            throws Exception {
+        // create new object to return
+        ServiceConfig sc = new ServiceConfig();
+
+        // copy the orignal objects local properties
+        /*
+        sc.setServiceName(config.getProperty(service + ".SQL.columns"));
+        sc.setConnectionPort(getConnectionPort());
+        sc.setServiceClass(getServiceClass());
+        sc.setServiceType(getServiceType());
+        sc.setStartupType(getStartupType());
+        sc.isIgnoreConnectionLimit(isIgnoreConnectionLimit());
+        sc.setMaximumConnections(getMaximumConnections());
+
+        // copy of collector configurations from the original object
+        for (ServiceConfig collector : getSubscribers()) {
+            sc.getSubscribers().add(collector.clone());
+
+            // yield processing to other threads
+            Thread.yield();
+        }
+
+        // copy of distributor configurations from the original object
+        for (ServiceConfig publisher : getPublishers()) {
+            sc.getPublishers().add(publisher.clone());
+
+            // yield processing to other threads
+            Thread.yield();
+        }
+
+        // copy the original objects attributes to new object
+        if (!getAttributes().isEmpty()) {
+            ArrayList<String> keyList = new ArrayList<>(
+                    getAttributes().keySet());
+
+            String key;
+            String value;
+            for (Object attrKey : keyList) {
+                key = attrKey.toString();
+                value = getAttributes().get(key);
+
+                sc.getAttributes().put(key, value);
+
+                // yield processing to other threads
+                Thread.yield();
+            }
+        }
+        */
+        return sc;
     }
     // </editor-fold>
 

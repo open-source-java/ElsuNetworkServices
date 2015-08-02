@@ -5,8 +5,8 @@ import java.io.*;
 import java.util.Collections.*;
 
 /**
- * AbstractNetworkServices is the main class which is used to instantiate
- user request for different services as defined in the app.config file.
+ * AbstractNetworkServices is the main class which is used to instantiate user
+ * request for different services as defined in the app.config file.
  * <p>
  * Standard invocation is "java -jar NCSElsuNetworkServicesAbstract.jar". User
  * can specify following additional arguments:
@@ -96,15 +96,14 @@ public abstract class AbstractNetworkServices {
 
             // if user as provided command line arguments, parse them
             if (args.length > 0) {
-                // set the global static APPCONFIG variable so the 
-                // ServiceFactory when instantiated will use it
-                ServiceFactory.APPCONFIG = args[0];
+                // instantiate factory with provided config
+                setFactory(new ServiceFactory(args[0]));
+            } else {
+                // create ServiceFactory and store it in class variable.  since 
+                // logging is not yet configured, ServiceFactory, uses System.out
+                // to display any notifications.
+                setFactory(new ServiceFactory());
             }
-
-            // create ServiceFactory and store it in class variable.  since 
-            // logging is not yet configured, ServiceFactory, uses System.out
-            // to display any notifications.
-            setFactory(new ServiceFactory(System.out));
 
             // allow the ServiceFactory to initialize services stored in the
             // default app.config or user specified custom config
