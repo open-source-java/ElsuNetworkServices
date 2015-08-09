@@ -1,4 +1,4 @@
-package elsu.network.services.support;
+package elsu.network.services.system;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
@@ -85,7 +85,7 @@ public class ControlService extends AbstractService implements IService {
                 = getFactory().getConfig().getProperty(
                         "connection.terminator").toString();
         this._password = getServiceConfig().getAttributes().get(
-                "service.password").toString();
+                "password").toString();
         this._localStorage = getFactory().getConfig().getProperty(
                 "localStore.directory").toString();
     }

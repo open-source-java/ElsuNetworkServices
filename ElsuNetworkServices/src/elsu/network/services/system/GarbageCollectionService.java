@@ -1,4 +1,4 @@
-package elsu.network.services.support;
+package elsu.network.services.system;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
@@ -52,12 +52,12 @@ public class GarbageCollectionService extends AbstractService
         try {
             this._gcDelay = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
-                            "service.garbage.collection.timer").toString());
+                            "timer").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
-                    + ", invalid service.garbage.collection.timer, "
+                    + ", invalid timer, "
                     + ex.getMessage());
             this._gcDelay = 10000;
         }

@@ -11,7 +11,7 @@ import elsu.network.application.*;
  *
  * @author ss.dhaliwal
  */
-public class ElsuNetworkServicesUnitTest extends AbstractNetworkServices {
+public class ElsuNetworkServicesUnitTest extends AbstractNetworkApplication {
 
     /**
      * @param args the command line arguments
@@ -31,5 +31,4 @@ public class ElsuNetworkServicesUnitTest extends AbstractNetworkServices {
             System.exit(1);
         }
     }
-   
 }

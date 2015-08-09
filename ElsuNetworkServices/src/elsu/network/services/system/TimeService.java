@@ -1,4 +1,4 @@
-package elsu.network.services.support;
+package elsu.network.services.system;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
