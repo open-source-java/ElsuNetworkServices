@@ -24,9 +24,8 @@ public class ReverseService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public ReverseService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
-        super(factory, threadGroup, serviceConfig);
+    public ReverseService(String threadGroup, ServiceConfig serviceConfig) {
+        super(threadGroup, serviceConfig);
 
         // call the super class constructor
         initializeLocalProperties();
@@ -39,10 +38,10 @@ public class ReverseService extends AbstractService implements IService {
      *
      */
     private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getConfig().getProperty(
+        this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getConfig().getProperty(
+                = getFactory().getProperty(
                         "connection.terminator").toString();
     }
     // </editor-fold>

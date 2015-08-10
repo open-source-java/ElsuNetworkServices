@@ -64,9 +64,9 @@ public class ControlService extends AbstractService implements IService {
      * @see ServiceRuntimeProperties
      *
      */
-    public ControlService(ServiceFactory factory, ServiceConfig serviceConfig) {
+    public ControlService(ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, null, serviceConfig);
+        super(null, serviceConfig);
 
         // local config properties for local reference by class method
         initializeLocalProperties();
@@ -79,14 +79,14 @@ public class ControlService extends AbstractService implements IService {
      *
      */
     private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getConfig().getProperty(
+        this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getConfig().getProperty(
+                = getFactory().getProperty(
                         "connection.terminator").toString();
         this._password = getServiceConfig().getAttributes().get(
                 "password").toString();
-        this._localStorage = getFactory().getConfig().getProperty(
+        this._localStorage = getFactory().getProperty(
                 "localStore.directory").toString();
     }
     // </editor-fold>

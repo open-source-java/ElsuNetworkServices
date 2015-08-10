@@ -134,6 +134,27 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
     }
 
     /**
+     * getProperty(...) returns the string value for the key provided from the
+     * global factory properties.
+     *
+     * @param key is the property which is being searched
+     * @return <code>String</code> value of the key
+     */
+    public synchronized Object getProperty(String key) {
+        return getConfig().getProperty(key);
+    }
+
+    /**
+     * getProperties() returns the hashmap <String, Object> which is the main
+     * storage for all the global properties.
+     *
+     * @return <code>Map<String, Object></code> with the global properties
+     */
+    public synchronized Map<String, Object> getProperties() {
+        return getConfig().getProperties();
+    }
+
+    /**
      * getMaximumConnections() returns the value of the maximum connnections.
      * This is the maximum limit of connections from all services, including
      * child services. The connection limit can be exceeded only if the service
@@ -269,12 +290,20 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         // new service, store the service object with port as its key
         getServices().put(key, service);
 
+        // set notification to services with factory reference
+        notifyListeners(this, StatusType.INITIALIZE, null, service);
+
         // check the service startup type, if Automatic, notify service to 
         // start.  start() is a overloaded method from base service and allows
         // services to perform pre-setup before connections are active
         if (service.getServiceConfig().getStartupType()
                 == ServiceStartupType.AUTOMATIC) {
-            service.start();
+            //service.start();
+            Object status = notifyListeners(this, StatusType.START, null, service);
+            if (status instanceof Exception) {
+                throw new Exception((Exception) status);
+            }
+
             logInfo(getClass().toString() + ", addService(), starting service "
                     + service.getClass().getName()
                     + " on port " + port);
@@ -309,7 +338,8 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
 
         // send signal to the service to shutdown before we remove it from 
         // the service list to prevent orphanded services
-        service.shutdown();
+        //service.shutdown();
+        notifyListeners(this, StatusType.SHUTDOWN, null, service);
 
         // if delete = true, remove the service from the service list
         // permanently.  This remove the service config and therefore, once
@@ -344,8 +374,8 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
 
         // retrive the service object from the service list
         // if port does not exist, log error and return
-        AbstractService svc = (AbstractService) getServices().get(key);
-        if (svc == null) {
+        AbstractService service = (AbstractService) getServices().get(key);
+        if (service == null) {
             logError(getClass().toString() + "//startService//Port " + port
                     + " not found.");
 
@@ -354,11 +384,16 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
 
         // check if the service is running.  if the service is not running
         // start the service else skip and continue.
-        if (!svc.isRunning()) {
-            svc.start();
+        if (!service.isRunning()) {
+            //service.start();
+            Object status = notifyListeners(this, StatusType.START, null, service);
+            if (status instanceof Exception) {
+                throw new Exception((Exception) status);
+            }
+
             logInfo(getClass().toString()
                     + ", startService(), starting service "
-                    + svc.getClass().getName()
+                    + service.getClass().getName()
                     + " on port " + port);
         }
 
@@ -382,8 +417,9 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
      */
     public void initializeServices() throws Exception {
         try {
-            ServiceConfig config;
-            String serviceName;
+            ServiceConfig config = null;
+            String serviceName = "";
+            IService service = null;
 
             // collect the list of all services into array list for processing
             // do not use iterator since control service can change the scope
@@ -416,7 +452,10 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                                         config);
 
                                 // create the service instance
-                                IService service = new ControlService(this, config);
+                                service = new ControlService(config);
+
+                                // connect the factory event listeners
+                                ((IEventPublisher) service).addEventListener(this);
 
                                 // add the service to the service list in the factory
                                 addService(service, config.getConnectionPort());
@@ -435,8 +474,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
 
                             // create service constructor discovery type parameter array
                             // populate it with the required class types
-                            Class<?>[] argTypes = {ServiceFactory.class, String.class,
-                                ServiceConfig.class};
+                            Class<?>[] argTypes = {String.class, ServiceConfig.class};
 
                             // retrieve the matching constructor for the service using
                             // reflection
@@ -446,11 +484,14 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                             // create parameter array and populate it with values to 
                             // pass to the service constructor
                             Object[] arguments
-                                    = {this, config.getServiceClass(), config};
+                                    = {config.getServiceClass(), config};
 
                             // create new instance of the service using the discovered
                             // constructor and parameters
-                            IService service = (IService) cons.newInstance(arguments);
+                            service = (IService) cons.newInstance(arguments);
+
+                            // connect the factory event listeners
+                            ((IEventPublisher) service).addEventListener(this);
 
                             // add the service to the service list in the factory
                             addService(service, config.getConnectionPort());
@@ -465,6 +506,13 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                     // function to handle it
                     logError(getClass().getName() + ", initializeServices(), "
                             + spObject + " service load error, " + ex.getMessage());
+
+                    if (service != null) {
+                        try {
+                            removeService(service.getServiceConfig().getConnectionPort(), false);
+                        } catch (Exception exi) {
+                        }
+                    }
                     // throw new Exception(ex.getMessage());
                 }
             }
@@ -478,26 +526,30 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
             List<IService> serviceList;
             serviceList = new ArrayList<>(getServices().values());
 
-            // loop through all the services in the service list
-            for (IService svc : serviceList) {
-                // if the service is marked delayed start, process the service
-                if (svc.getServiceConfig().getStartupType()
+            for (Iterator<IService> it = serviceList.iterator(); it.hasNext();) {
+                service = it.next();
+                if (service.getServiceConfig().getStartupType()
                         == ServiceStartupType.DELAYEDSTART) {
                     // temporarily update the service startup type to Automatic
                     // so we can use the common start method
-                    svc.getServiceConfig().setStartupType(
+                    service.getServiceConfig().setStartupType(
                             ServiceStartupType.AUTOMATIC);
 
                     // start the service.  we do not need to add the service,
                     // just start it.
-                    svc.start();
+                    //service.start();
+                    Object status = notifyListeners(this, StatusType.START, null, service);
+                    if (status instanceof Exception) {
+                        logError(getClass().getName() + ", initializeServices(), "
+                                + service.getClass().getName() + ", service load error, "
+                                + ((Exception) status).getMessage());
+                    }
 
                     // reset the service startup type back to DelayedStart
-                    svc.getServiceConfig().setStartupType(
+                    service.getServiceConfig().setStartupType(
                             ServiceStartupType.DELAYEDSTART);
                 }
 
-                // yield processing to other threads
                 Thread.yield();
             }
 
@@ -526,11 +578,12 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         serviceList = new ArrayList<>(getServices().values());
 
         // loop through all the services in the service list
-        for (IService svc : serviceList) {
+        for (IService service : serviceList) {
             // if the service is running, call the shutdown() method for the
             // service.s
-            if (svc.isRunning()) {
-                svc.shutdown();
+            if (service.isRunning()) {
+                //service.shutdown();
+                notifyListeners(this, StatusType.SHUTDOWN, null, service);
             }
 
             // yield processing to other threads
@@ -653,8 +706,8 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
     }
 
     @Override
-    public synchronized void EventHandler(EventObject e, StatusType s, String message, Object o) {
-        switch (s) {
+    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
+        switch (status) {
             case DEBUG:
                 getConfig().logDebug(message);
                 break;
@@ -667,5 +720,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
             default:
                 break;
         }
+
+        return null;
     }
 }

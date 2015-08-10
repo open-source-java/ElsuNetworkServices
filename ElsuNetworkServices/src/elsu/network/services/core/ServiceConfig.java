@@ -85,6 +85,9 @@ public class ServiceConfig {
     public synchronized Map<String, String> getAttributes() {
         return _attributes;
     }
+    public synchronized String getAttribute(String key) {
+        return _attributes.get(key);
+    }
 
     public synchronized int getConnectionPort() {
         return this._connectionPort;

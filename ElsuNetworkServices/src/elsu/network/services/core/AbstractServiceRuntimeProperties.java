@@ -10,8 +10,8 @@ import java.util.*;
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public abstract class AbstractServiceRuntimeProperties {
-
+public abstract class AbstractServiceRuntimeProperties extends AbstractEventPublisher 
+    implements IEventPublisher, IEventSubscriber {
     // <editor-fold desc="class private storage">
     // count of active connections currently connected to the service
     private volatile int _activeConnections = 0;

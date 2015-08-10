@@ -52,10 +52,9 @@ public class FileTransferService extends AbstractService implements IService {
      * @see ServiceConnectionBasic
      * @see ServiceConnectionCustom
      */
-    public FileTransferService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
+    public FileTransferService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, threadGroup, serviceConfig);
+        super(threadGroup, serviceConfig);
 
         // local config properties for local reference by class method
         initializeLocalProperties();
@@ -68,10 +67,10 @@ public class FileTransferService extends AbstractService implements IService {
      *
      */
     private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getConfig().getProperty(
+        this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getConfig().getProperty(
+                = getFactory().getProperty(
                         "connection.terminator").toString();
 
         try {

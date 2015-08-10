@@ -54,10 +54,9 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @see AbstractServiceProperties
      * @see ServiceRuntimeProperties
      */
-    public AbstractService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
+    public AbstractService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, serviceConfig);
+        super(serviceConfig);
 
         // store the thread group for use by other objects
         setThreadGroup(new ThreadGroup(threadGroup));
@@ -688,5 +687,46 @@ public abstract class AbstractService extends AbstractServiceProperties
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
         out.flush();
+    }
+
+    @Override
+    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
+        Object result = null;
+
+        if (sender instanceof ServiceFactory) {
+            switch (status) {
+                case INITIALIZE:
+                    if (this == o) {
+                        if (getFactory() == null) {
+                            setFactory((ServiceFactory) sender);
+                        } else {
+                            result = new Exception(getClass().getName() + ", EventHandler(), "
+                                    + this.getServiceConfig().getServiceName()
+                                    + ", service factory has already been assigned!!");
+                        }
+                    }
+                    break;
+                case START:
+                    if (this == o) {
+                        try {
+                            start();
+                        } catch (Exception ex) {
+                            result = ex;
+                        }
+                    }
+                case SHUTDOWN:
+                    if (this == o) {
+                        try {
+                            shutdown();
+                        } catch (Exception ex) {
+                            result = ex;
+                        }
+                    }
+                default:
+                    break;
+            }
+        }
+
+        return result;
     }
 }

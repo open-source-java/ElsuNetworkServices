@@ -63,11 +63,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
      * @param factory is the factory which created the service
      * @param serviceConfig is the configuration object loaded from app.config
      */
-    public AbstractServiceProperties(ServiceFactory factory,
-            ServiceConfig serviceConfig) {
-        // store the factory for back-reference
-        this._factory = factory;
-
+    public AbstractServiceProperties(ServiceConfig serviceConfig) {
         // store the service configuration
         this._serviceConfig = serviceConfig;
 
@@ -86,7 +82,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
      *
      */
     private void initializeLocalProperties() {
-        this._datetimeFormat = getProperties().get(
+        this._datetimeFormat = getProperty(
                 "message.datetimeFormat").toString();
         this._fieldDelimiter = getProperties().get(
                 "record.field.delimiter").toString();
@@ -118,6 +114,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
 
     public synchronized ServiceFactory getFactory() {
         return this._factory;
+    }
+
+    protected synchronized void setFactory(ServiceFactory factory) {
+        this._factory = factory;
     }
 
     public synchronized String getFieldDelimiter() {
@@ -152,8 +152,12 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return getFactory().getServiceConnections();
     }
 
+    public synchronized Object getProperty(String key) {
+        return getFactory().getProperty(key);
+    }
+
     public synchronized Map<String, Object> getProperties() {
-        return getFactory().getConfig().getProperties();
+        return getFactory().getProperties();
     }
 
     public synchronized String getStatusDatabaseError() {

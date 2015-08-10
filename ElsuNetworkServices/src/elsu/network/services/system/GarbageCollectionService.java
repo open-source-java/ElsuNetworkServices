@@ -28,10 +28,9 @@ public class GarbageCollectionService extends AbstractService
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public GarbageCollectionService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
+    public GarbageCollectionService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, threadGroup, serviceConfig);
+        super(threadGroup, serviceConfig);
 
         initializeLocalProperties();
     }
@@ -43,10 +42,10 @@ public class GarbageCollectionService extends AbstractService
      *
      */
     private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getConfig().getProperty(
+        this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getConfig().getProperty(
+                = getFactory().getProperty(
                         "connection.terminator").toString();
 
         try {
