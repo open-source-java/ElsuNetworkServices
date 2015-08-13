@@ -24,7 +24,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     // <editor-fold desc="class private storage">
     // factory object which created the serice for back reference for support
     // functions like logging
-    private volatile ServiceFactory _factory = null;
+    //private volatile ServiceFactory _factory = null;
 
     // service configuration object created from app.config properties.
     private volatile ServiceConfig _serviceConfig = null;
@@ -70,36 +70,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         // create a set for storing connections
         this._connections = new HashSet<>(
                 serviceConfig.getMaximumConnections());
-
-        // local config properties for local reference by class method
-        initializeLocalProperties();
-    }
-
-    /**
-     * initializeProperties() is a generic method to consolidate all initial
-     * variable instantiation outside of class constructor. It allows the
-     * variables to be reset from another method within a class if required.
-     *
-     */
-    private void initializeLocalProperties() {
-        this._datetimeFormat = getProperty(
-                "message.datetimeFormat").toString();
-        this._fieldDelimiter = getProperties().get(
-                "record.field.delimiter").toString();
-        this._recordTerminator = getProperties().get(
-                "record.terminator").toString();
-        this._statusOk
-                = getProperties().get("connection.status.ok").toString();
-        this._statusInvalidContent = getProperties().get(
-                "connection.status.invalidContent").toString();
-        this._statusUnAuthorized = getProperties().get(
-                "connection.status.unauthorized").toString();
-        this._statusRequestTimeout = getProperties().get(
-                "connection.status.requestTimeout").toString();
-        this._statusDatabaseError = getProperties().get(
-                "connection.status.databaseError").toString();
-        this._statusSystemError = getProperties().get(
-                "connection.status.systemError").toString();
     }
     // </editor-fold>
 
@@ -111,25 +81,23 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     public synchronized String getDatetimeFormat() {
         return this._datetimeFormat;
     }
-
-    public synchronized ServiceFactory getFactory() {
-        return this._factory;
+    protected void setDateTimeFormat(String format) {
+        this._datetimeFormat = format;
     }
 
-    protected synchronized void setFactory(ServiceFactory factory) {
-        this._factory = factory;
-    }
+    //public synchronized ServiceFactory getFactory() {
+    //    return this._factory;
+    //}
+
+    //protected synchronized void setFactory(ServiceFactory factory) {
+    //    this._factory = factory;
+    //}
 
     public synchronized String getFieldDelimiter() {
         return this._fieldDelimiter;
     }
-
-    public synchronized int getMaximumConnections() {
-        return getFactory().getMaximumConnections();
-    }
-
-    public synchronized void setMaximumConnections(int count) {
-        getFactory().setMaximumConnections(count);
+    public void setFieldDelimiter(String delimiter) {
+        this._fieldDelimiter = delimiter;
     }
 
     public synchronized Object getMonitor() {
@@ -138,6 +106,9 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
 
     public synchronized String getRecordTerminator() {
         return this._recordTerminator;
+    }
+    public void setRecordTerminator(String terminator) {
+        this._recordTerminator = terminator;
     }
 
     public synchronized char getRecordTerminatorChar() {
@@ -148,87 +119,46 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return this._serviceConfig;
     }
 
-    public synchronized int getServiceConnections() {
-        return getFactory().getServiceConnections();
-    }
-
-    public synchronized Object getProperty(String key) {
-        return getFactory().getProperty(key);
-    }
-
-    public synchronized Map<String, Object> getProperties() {
-        return getFactory().getProperties();
-    }
-
     public synchronized String getStatusDatabaseError() {
         return this._statusDatabaseError;
+    }
+    public void setStatusDatabaseError(String status) {
+        this._statusDatabaseError = status;
     }
 
     public synchronized String getStatusInvalidContent() {
         return this._statusInvalidContent;
     }
+    public void setStatusInvalidContent(String status) {
+        this._statusInvalidContent = status;
+    }
 
     public synchronized String getStatusOk() {
         return this._statusOk;
+    }
+    public void setStatusOk(String status) {
+        this._statusOk = status;
     }
 
     public synchronized String getStatusRequestTimeout() {
         return this._statusRequestTimeout;
     }
+    public void setStatusRequestTimeout(String status) {
+        this._statusRequestTimeout = status;
+    }
 
     public synchronized String getStatusSystemError() {
         return this._statusSystemError;
+    }
+    public void setStatusSystemError(String status) {
+        this._statusSystemError = status;
     }
 
     public synchronized String getStatusUnAuthorized() {
         return this._statusUnAuthorized;
     }
-    // </editor-fold>
-
-    // <editor-fold desc="class methods">
-    public synchronized void addService(IService service, int port) throws
-            Exception {
-        getFactory().addService(service, port);
-    }
-
-    public synchronized void decreaseServiceConnections() {
-        getFactory().decreaseServiceConnections();
-    }
-
-    public synchronized void increaseServiceConnections() {
-        getFactory().increaseServiceConnections();
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="class logging">
-    /**
-     * logDebug(...) method is an interface method to the central factory
-     * logDebug method to support multi-threaded logging
-     *
-     * @param obj
-     */
-    public synchronized void logDebug(Object obj) {
-        getFactory().logDebug(obj.toString());
-    }
-
-    /**
-     * logError(...) method is an interface method to the central factory
-     * logDebug method to support multi-threaded logging
-     *
-     * @param obj
-     */
-    public synchronized void logError(Object obj) {
-        getFactory().logError(obj.toString());
-    }
-
-    /**
-     * logInfo(...) method is an interface method to the central factory
-     * logDebug method to support multi-threaded logging
-     *
-     * @param obj
-     */
-    public synchronized void logInfo(Object obj) {
-        getFactory().logInfo(obj.toString());
+    public void setStatusUnAuthorized(String status) {
+        this._statusUnAuthorized = status;
     }
     // </editor-fold>
 

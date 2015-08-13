@@ -66,7 +66,10 @@ public class FileTransferService extends AbstractService implements IService {
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
+    @Override
+    protected void initializeLocalProperties() {
+        super.initializeLocalProperties();
+
         this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator

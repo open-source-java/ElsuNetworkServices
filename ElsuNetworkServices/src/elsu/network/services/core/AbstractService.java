@@ -4,6 +4,7 @@ import elsu.network.core.ServiceType;
 import elsu.network.factory.*;
 import elsu.common.*;
 import elsu.network.services.*;
+import elsu.support.IEventSubscriber;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -65,7 +66,7 @@ public abstract class AbstractService extends AbstractServiceProperties
         this._childServices = new HashMap<>();
 
         // local config properties for local reference by class method
-        initializeLocalProperties();
+        // initializeLocalProperties();
     }
 
     /**
@@ -74,7 +75,19 @@ public abstract class AbstractService extends AbstractServiceProperties
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
+    protected void initializeLocalProperties() {
+        // initialize shared/global service properties 
+        setDateTimeFormat(getProperty("message.datetimeFormat").toString());
+        setFieldDelimiter(getProperties().get("record.field.delimiter").toString());
+        setRecordTerminator(getProperties().get("record.terminator").toString());
+        setStatusOk(getProperties().get("connection.status.ok").toString());
+        setStatusInvalidContent(getProperties().get("connection.status.invalidContent").toString());
+        setStatusUnAuthorized(getProperties().get("connection.status.unauthorized").toString());
+        setStatusRequestTimeout(getProperties().get("connection.status.requestTimeout").toString());
+        setStatusDatabaseError(getProperties().get("connection.status.databaseError").toString());
+        setStatusSystemError(getProperties().get("connection.status.systemError").toString());
+
+        // initialize local service properties
         if (getServiceConfig().getServiceType() == ServiceType.SERVER) {
             this._isListener = true;
         } else {
@@ -114,6 +127,69 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
     // </editor-fold>
 
+    // <editor-fold desc="class factory getter/setters">
+    public synchronized int getMaximumConnections() {
+        notifyFactoryListener(this, )
+        return getFactory().getMaximumConnections();
+    }
+
+    public synchronized void setMaximumConnections(int count) {
+        getFactory().setMaximumConnections(count);
+    }
+
+    public synchronized int getServiceConnections() {
+        return getFactory().getServiceConnections();
+    }
+
+    public synchronized Object getProperty(String key) {
+        return getFactory().getProperty(key);
+    }
+
+    public synchronized Map<String, Object> getProperties() {
+        return getFactory().getProperties();
+    }
+    public synchronized void addService(IService service, int port) throws
+            Exception {
+        getFactory().addService(service, port);
+    }
+
+    public synchronized void decreaseServiceConnections() {
+        getFactory().decreaseServiceConnections();
+    }
+
+    public synchronized void increaseServiceConnections() {
+        getFactory().increaseServiceConnections();
+    }
+    /**
+     * logDebug(...) method is an interface method to the central factory
+     * logDebug method to support multi-threaded logging
+     *
+     * @param obj
+     */
+    public synchronized void logDebug(Object obj) {
+        getFactory().logDebug(obj.toString());
+    }
+
+    /**
+     * logError(...) method is an interface method to the central factory
+     * logDebug method to support multi-threaded logging
+     *
+     * @param obj
+     */
+    public synchronized void logError(Object obj) {
+        getFactory().logError(obj.toString());
+    }
+
+    /**
+     * logInfo(...) method is an interface method to the central factory
+     * logDebug method to support multi-threaded logging
+     *
+     * @param obj
+     */
+    public synchronized void logInfo(Object obj) {
+        getFactory().logInfo(obj.toString());
+    }
+    // </editor-fold>
     // <editor-fold desc="class getter/setters">
     /**
      * getChildConfig() method returns the child configuration object. If this
@@ -640,6 +716,79 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
     // </editor-fold>
 
+    // <editor-fold desc="class event listener">
+    public synchronized Object notifyFactoryListener(Object sender, StatusType status,
+            String message, Object o) {
+        Object result = null;
+
+        // if listeners are not setup, then just output to console
+        if (getEventListeners().size() == 0) {
+            System.out.println(status.name() + ":" + message);
+        } else {
+            Iterator i = getEventListeners().iterator();
+
+            while (i.hasNext()) {
+                try {
+                    Object iObj = i.next();
+
+                    if (iObj instanceof ServiceFactory) {
+                        result = ((IEventSubscriber) iObj).EventHandler(sender, status, message, o);
+                        break;
+                    }
+                } catch (Exception ex) {
+                    System.out.println(getClass().toString() + ", notifyFactoryListener(), "
+                            + ex.getMessage());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
+        Object result = null;
+
+        if (sender instanceof ServiceFactory) {
+            switch (status) {
+                case INITIALIZE:
+                    if (this == o) {
+                        if (getEventListeners().indexOf(sender) == 0) {
+                            //setFactory((ServiceFactory) sender);
+                            addEventListener((ServiceFactory)sender);
+                            this.initializeLocalProperties();
+                        } else {
+                            result = new Exception(getClass().getName() + ", EventHandler(), "
+                                    + this.getServiceConfig().getServiceName()
+                                    + ", service factory has already been assigned!!");
+                        }
+                    }
+                    break;
+                case START:
+                    if (this == o) {
+                        try {
+                            start();
+                        } catch (Exception ex) {
+                            result = ex;
+                        }
+                    }
+                case SHUTDOWN:
+                    if (this == o) {
+                        try {
+                            shutdown();
+                        } catch (Exception ex) {
+                            result = ex;
+                        }
+                    }
+                default:
+                    break;
+            }
+        }
+
+        return result;
+    }
+    // </editor-fold>
+
     @Override
     public synchronized String toString() {
         StringBuilder result = new StringBuilder();
@@ -687,46 +836,5 @@ public abstract class AbstractService extends AbstractServiceProperties
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
         out.flush();
-    }
-
-    @Override
-    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
-        Object result = null;
-
-        if (sender instanceof ServiceFactory) {
-            switch (status) {
-                case INITIALIZE:
-                    if (this == o) {
-                        if (getFactory() == null) {
-                            setFactory((ServiceFactory) sender);
-                        } else {
-                            result = new Exception(getClass().getName() + ", EventHandler(), "
-                                    + this.getServiceConfig().getServiceName()
-                                    + ", service factory has already been assigned!!");
-                        }
-                    }
-                    break;
-                case START:
-                    if (this == o) {
-                        try {
-                            start();
-                        } catch (Exception ex) {
-                            result = ex;
-                        }
-                    }
-                case SHUTDOWN:
-                    if (this == o) {
-                        try {
-                            shutdown();
-                        } catch (Exception ex) {
-                            result = ex;
-                        }
-                    }
-                default:
-                    break;
-            }
-        }
-
-        return result;
     }
 }

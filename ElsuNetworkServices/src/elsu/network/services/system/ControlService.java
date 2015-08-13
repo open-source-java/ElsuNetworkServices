@@ -67,9 +67,6 @@ public class ControlService extends AbstractService implements IService {
     public ControlService(ServiceConfig serviceConfig) {
         // call the super class constructor
         super(null, serviceConfig);
-
-        // local config properties for local reference by class method
-        initializeLocalProperties();
     }
 
     /**
@@ -78,7 +75,10 @@ public class ControlService extends AbstractService implements IService {
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
+    @Override
+    protected void initializeLocalProperties() {
+        super.initializeLocalProperties();
+        
         this._serviceShutdown = getFactory().getProperty(
                 "service.shutdown").toString();
         this._connectionTerminator

@@ -37,8 +37,6 @@ public interface IServiceInternal {
 
     public ServiceConfig getChildConfig();
 
-    public ServiceFactory getFactory();
-
     public int getMaximumConnections();
 
     public int getServiceConnections();

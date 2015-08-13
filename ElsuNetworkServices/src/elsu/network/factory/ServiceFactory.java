@@ -447,7 +447,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                             // the service
                             if (config.getStartupType() != ServiceStartupType.DISABLED) {
                                 // log the action
-                                notifyListeners(new EventObject(this), StatusType.INFORMATION,
+                                notifyListeners(this, StatusType.INFORMATION,
                                         ".. service activated (" + spObject.toString() + ")",
                                         config);
 
@@ -465,7 +465,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                             // disabled process the service properties
 
                             // log the action
-                            notifyListeners(new EventObject(this), StatusType.INFORMATION,
+                            notifyListeners(this, StatusType.INFORMATION,
                                     ".. service activated (" + spObject.toString() + ")",
                                     config);
 
@@ -707,20 +707,26 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
 
     @Override
     public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
-        switch (status) {
-            case DEBUG:
-                getConfig().logDebug(message);
-                break;
-            case ERROR:
-                getConfig().logError(message);
-                break;
-            case INFORMATION:
-                getConfig().logInfo(message);
-                break;
-            default:
-                break;
-        }
+        Object result = null;
 
-        return null;
+        if (sender instanceof ServiceFactory) {
+            switch (status) {
+                case DEBUG:
+                    getConfig().logDebug(message);
+                    break;
+                case ERROR:
+                    getConfig().logError(message);
+                    break;
+                case INFORMATION:
+                    getConfig().logInfo(message);
+                    break;
+                default:
+                    break;
+            }
+
+            return null;
+        }
+        
+        return result;
     }
 }
