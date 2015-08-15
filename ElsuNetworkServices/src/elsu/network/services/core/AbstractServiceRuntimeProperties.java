@@ -1,5 +1,8 @@
 package elsu.network.services.core;
 
+import elsu.events.IEventSubscriber;
+import elsu.events.IEventPublisher;
+import elsu.events.AbstractEventManager;
 import elsu.common.*;
 import elsu.support.*;
 import java.util.*;
@@ -10,7 +13,7 @@ import java.util.*;
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public abstract class AbstractServiceRuntimeProperties extends AbstractEventPublisher 
+public abstract class AbstractServiceRuntimeProperties extends AbstractEventManager 
     implements IEventPublisher, IEventSubscriber {
     // <editor-fold desc="class private storage">
     // count of active connections currently connected to the service

@@ -1,5 +1,9 @@
 package elsu.network.factory;
 
+import elsu.events.IEventSubscriber;
+import elsu.events.IEventPublisher;
+import elsu.events.AbstractEventManager;
+import elsu.events.EventStatusType;
 import elsu.network.services.system.ControlService;
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
@@ -37,7 +41,7 @@ import java.util.*;
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  * @version .51
  */
-public class ServiceFactory extends AbstractEventPublisher implements IEventPublisher, IEventSubscriber {
+public class ServiceFactory extends AbstractEventManager implements IEventPublisher, IEventSubscriber {
 
     // <editor-fold desc="class private storage">
     // configuration reference object
@@ -291,7 +295,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         getServices().put(key, service);
 
         // set notification to services with factory reference
-        notifyListeners(this, StatusType.INITIALIZE, null, service);
+        notifyListeners(this, EventStatusType.INITIALIZE, null, service);
 
         // check the service startup type, if Automatic, notify service to 
         // start.  start() is a overloaded method from base service and allows
@@ -299,7 +303,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         if (service.getServiceConfig().getStartupType()
                 == ServiceStartupType.AUTOMATIC) {
             //service.start();
-            Object status = notifyListeners(this, StatusType.START, null, service);
+            Object status = notifyListeners(this, EventStatusType.START, null, service);
             if (status instanceof Exception) {
                 throw new Exception((Exception) status);
             }
@@ -339,7 +343,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         // send signal to the service to shutdown before we remove it from 
         // the service list to prevent orphanded services
         //service.shutdown();
-        notifyListeners(this, StatusType.SHUTDOWN, null, service);
+        notifyListeners(this, EventStatusType.SHUTDOWN, null, service);
 
         // if delete = true, remove the service from the service list
         // permanently.  This remove the service config and therefore, once
@@ -386,7 +390,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
         // start the service else skip and continue.
         if (!service.isRunning()) {
             //service.start();
-            Object status = notifyListeners(this, StatusType.START, null, service);
+            Object status = notifyListeners(this, EventStatusType.START, null, service);
             if (status instanceof Exception) {
                 throw new Exception((Exception) status);
             }
@@ -447,7 +451,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                             // the service
                             if (config.getStartupType() != ServiceStartupType.DISABLED) {
                                 // log the action
-                                notifyListeners(this, StatusType.INFORMATION,
+                                notifyListeners(this, EventStatusType.INFORMATION,
                                         ".. service activated (" + spObject.toString() + ")",
                                         config);
 
@@ -465,7 +469,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                             // disabled process the service properties
 
                             // log the action
-                            notifyListeners(this, StatusType.INFORMATION,
+                            notifyListeners(this, EventStatusType.INFORMATION,
                                     ".. service activated (" + spObject.toString() + ")",
                                     config);
 
@@ -538,7 +542,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
                     // start the service.  we do not need to add the service,
                     // just start it.
                     //service.start();
-                    Object status = notifyListeners(this, StatusType.START, null, service);
+                    Object status = notifyListeners(this, EventStatusType.START, null, service);
                     if (status instanceof Exception) {
                         logError(getClass().getName() + ", initializeServices(), "
                                 + service.getClass().getName() + ", service load error, "
@@ -583,7 +587,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
             // service.s
             if (service.isRunning()) {
                 //service.shutdown();
-                notifyListeners(this, StatusType.SHUTDOWN, null, service);
+                notifyListeners(this, EventStatusType.SHUTDOWN, null, service);
             }
 
             // yield processing to other threads
@@ -706,7 +710,7 @@ public class ServiceFactory extends AbstractEventPublisher implements IEventPubl
     }
 
     @Override
-    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
+    public synchronized Object EventHandler(Object sender, EventStatusType status, String message, Object o) {
         Object result = null;
 
         if (sender instanceof ServiceFactory) {

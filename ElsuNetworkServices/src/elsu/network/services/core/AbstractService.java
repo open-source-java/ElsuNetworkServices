@@ -1,10 +1,11 @@
 package elsu.network.services.core;
 
+import elsu.events.EventStatusType;
 import elsu.network.core.ServiceType;
 import elsu.network.factory.*;
 import elsu.common.*;
 import elsu.network.services.*;
-import elsu.support.IEventSubscriber;
+import elsu.events.IEventSubscriber;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -717,7 +718,7 @@ public abstract class AbstractService extends AbstractServiceProperties
     // </editor-fold>
 
     // <editor-fold desc="class event listener">
-    public synchronized Object notifyFactoryListener(Object sender, StatusType status,
+    public synchronized Object notifyFactoryListener(Object sender, EventStatusType status,
             String message, Object o) {
         Object result = null;
 
@@ -746,7 +747,7 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     @Override
-    public synchronized Object EventHandler(Object sender, StatusType status, String message, Object o) {
+    public synchronized Object EventHandler(Object sender, EventStatusType status, String message, Object o) {
         Object result = null;
 
         if (sender instanceof ServiceFactory) {
