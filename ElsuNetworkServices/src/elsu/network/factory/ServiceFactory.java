@@ -1,16 +1,9 @@
 package elsu.network.factory;
 
-import elsu.events.IEventSubscriber;
-import elsu.events.IEventPublisher;
-import elsu.events.AbstractEventManager;
-import elsu.events.EventStatusType;
-import elsu.network.services.system.ControlService;
-import elsu.network.services.core.ServiceConfig;
-import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractService;
-import elsu.network.core.ServiceStartupType;
-import elsu.network.services.support.*;
-import elsu.network.services.*;
+import elsu.events.*;
+import elsu.network.services.system.*;
+import elsu.network.services.core.*;
+import elsu.network.core.*;
 import elsu.common.*;
 import elsu.support.*;
 import java.io.*;
@@ -109,7 +102,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    public ConfigLoader getConfig() {
+    public synchronized ConfigLoader getConfig() {
         return this._config;
     }
 
@@ -265,18 +258,17 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * startup are started by calling their start() method.
      *
      * @param service is the service object which needs to be managed
-     * @param port is the unique service id and also the listener port if
      * service is configured as a SERVER service.
      * @throws java.lang.Exception
      */
-    public synchronized void addService(IService service, int port)
+    public synchronized void addService(IService service)
             throws Exception {
         // convert to object for comparison in the hashMap
-        Integer key = new Integer(port);
+        Integer port = new Integer(service.getServiceConfig().getConnectionPort());
 
         // check if the port exists in the services hashMap
         // if port already exists, log error and return
-        if (getServices().get(key) != null) {
+        if (getServices().get(port) != null) {
             logError(getClass().toString() + "//addService//Port " + port
                     + " already in use");
             return;
@@ -292,7 +284,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         }
 
         // new service, store the service object with port as its key
-        getServices().put(key, service);
+        getServices().put(port, service);
 
         // set notification to services with factory reference
         notifyListeners(this, EventStatusType.INITIALIZE, null, service);
@@ -419,7 +411,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @throws Exception
      */
-    public void initializeServices() throws Exception {
+    public synchronized void initializeServices() throws Exception {
         try {
             ServiceConfig config = null;
             String serviceName = "";
@@ -462,7 +454,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
                                 ((IEventPublisher) service).addEventListener(this);
 
                                 // add the service to the service list in the factory
-                                addService(service, config.getConnectionPort());
+                                addService(service);
                             }
                         } else if (config.getStartupType() != ServiceStartupType.DISABLED) {
                          // service is not control service, so if it is not 
@@ -498,7 +490,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
                             ((IEventPublisher) service).addEventListener(this);
 
                             // add the service to the service list in the factory
-                            addService(service, config.getConnectionPort());
+                            addService(service);
                         }
 
                         // yield processing to other threads
@@ -643,6 +635,40 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
     // </editor-fold>
 
+    // <editor-fold desc="class event listener">
+    @Override
+    public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
+        Object result = null;
+
+        if (sender instanceof ServiceFactory) {
+            switch (EventStatusType.valueOf(status.getName())) {
+                case DEBUG:
+                    getConfig().logDebug(message);
+                    break;
+                case ERROR:
+                    getConfig().logError(message);
+                    break;
+                case INFORMATION:
+                    getConfig().logInfo(message);
+                    break;
+                default:
+                    break;
+            }
+
+            return null;
+        } else if (sender instanceof IService) {
+            switch (EventStatusType.valueOf(status.getName()).getId()) {
+                case 7000:
+                    return getMaximumConnections();
+                default:
+                    break;
+            }
+        }
+        
+        return result;
+    }
+    // </editor-fold>
+
     /**
      * toString() method is overridden from default Object toString() to display
      * custom information of the factory object.
@@ -707,30 +733,5 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
         out.flush();
-    }
-
-    @Override
-    public synchronized Object EventHandler(Object sender, EventStatusType status, String message, Object o) {
-        Object result = null;
-
-        if (sender instanceof ServiceFactory) {
-            switch (status) {
-                case DEBUG:
-                    getConfig().logDebug(message);
-                    break;
-                case ERROR:
-                    getConfig().logError(message);
-                    break;
-                case INFORMATION:
-                    getConfig().logInfo(message);
-                    break;
-                default:
-                    break;
-            }
-
-            return null;
-        }
-        
-        return result;
     }
 }

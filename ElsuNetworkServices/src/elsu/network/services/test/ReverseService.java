@@ -41,11 +41,9 @@ public class ReverseService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getFactory().getProperty(
-                "service.shutdown").toString();
+        this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getProperty(
-                        "connection.terminator").toString();
+                = getProperty("connection.terminator").toString();
     }
     // </editor-fold>
 

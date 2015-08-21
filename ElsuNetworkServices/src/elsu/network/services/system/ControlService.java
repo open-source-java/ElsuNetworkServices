@@ -79,15 +79,12 @@ public class ControlService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
         
-        this._serviceShutdown = getFactory().getProperty(
-                "service.shutdown").toString();
+        this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getProperty(
-                        "connection.terminator").toString();
+                = getProperty("connection.terminator").toString();
         this._password = getServiceConfig().getAttributes().get(
                 "password").toString();
-        this._localStorage = getFactory().getProperty(
-                "localStore.directory").toString();
+        this._localStorage = getProperty("localStore.directory").toString();
     }
     // </editor-fold>
 
@@ -630,10 +627,10 @@ public class ControlService extends AbstractService implements IService {
 
         Constructor<?> cons = serviceClass.getDeclaredConstructor(argTypes);
 
-        Object[] arguments = {getFactory(), config.getServiceClass(), config};
+        Object[] arguments = {config.getServiceClass(), config};
         IService service = (IService) cons.newInstance(arguments);
 
-        getFactory().addService(service, config.getConnectionPort());
+        getFactory().addService(service);
         return service;
     }
 

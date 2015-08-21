@@ -1,11 +1,10 @@
 package elsu.network.services.core;
 
-import elsu.events.EventStatusType;
-import elsu.network.core.ServiceType;
+import elsu.events.*;
+import elsu.network.core.*;
 import elsu.network.factory.*;
 import elsu.common.*;
 import elsu.network.services.*;
-import elsu.events.IEventSubscriber;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -130,8 +129,7 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     // <editor-fold desc="class factory getter/setters">
     public synchronized int getMaximumConnections() {
-        notifyFactoryListener(this, )
-        return getFactory().getMaximumConnections();
+        return Integer.valueOf(notifyFactoryListener(this, EventStatusType.statusTypeFor("GETMAXIMUMCONNECTIONS"), null, null).toString());
     }
 
     public synchronized void setMaximumConnections(int count) {
@@ -718,13 +716,13 @@ public abstract class AbstractService extends AbstractServiceProperties
     // </editor-fold>
 
     // <editor-fold desc="class event listener">
-    public synchronized Object notifyFactoryListener(Object sender, EventStatusType status,
+    public synchronized Object notifyFactoryListener(Object sender, IEventStatusType status,
             String message, Object o) {
         Object result = null;
 
         // if listeners are not setup, then just output to console
         if (getEventListeners().size() == 0) {
-            System.out.println(status.name() + ":" + message);
+            System.out.println(status.getName() + ":" + message);
         } else {
             Iterator i = getEventListeners().iterator();
 
@@ -747,11 +745,11 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     @Override
-    public synchronized Object EventHandler(Object sender, EventStatusType status, String message, Object o) {
+    public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
         Object result = null;
 
         if (sender instanceof ServiceFactory) {
-            switch (status) {
+            switch (EventStatusType.valueOf(status.getName())) {
                 case INITIALIZE:
                     if (this == o) {
                         if (getEventListeners().indexOf(sender) == 0) {
