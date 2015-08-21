@@ -1,7 +1,6 @@
 package elsu.network.services;
 
 import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractConnection;
 import java.util.*;
 import java.net.*;
 
@@ -20,6 +19,9 @@ import java.net.*;
 public class Connection extends AbstractConnection {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local hashMap to store service or application properties by the 
     // connection for direct access
     private Map<String, Object> _properties = new HashMap<>();
@@ -65,7 +67,13 @@ public class Connection extends AbstractConnection {
      * the connection defined locally
      */
     public Map<String, Object> getProperties() {
-        return this._properties;
+        Map<String, Object> result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._properties;
+        }
+        
+        return result;
     }
     // </editor-fold>
 

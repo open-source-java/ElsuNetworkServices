@@ -1,5 +1,6 @@
 package elsu.network.services.system;
 
+import elsu.network.services.AbstractConnection;
 import elsu.network.services.core.*;
 import elsu.network.core.*;
 import elsu.network.factory.*;
@@ -34,6 +35,9 @@ import java.util.*;
 public class ControlService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -98,9 +102,16 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
+    private String getConnectionTerminator() {
         System.out.println("- ControlService(), getConnectionTerminator()");
-        return this._connectionTerminator;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -110,9 +121,16 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the password.
      */
-    private synchronized String getPassword() {
+    private String getPassword() {
         System.out.println("- ControlService(), getPassword()");
-        return this._password;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._password;
+        }
+        
+        return result;
     }
 
     /**
@@ -121,9 +139,16 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the local store.
      */
-    private synchronized String getLocalStorage() {
+    private String getLocalStorage() {
         System.out.println("- ControlService(), getLocalStorage()");
-        return this._localStorage;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._localStorage;
+        }
+        
+        return result;
     }
 
     /**
@@ -132,9 +157,16 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
+    private String getServiceShutdown() {
         System.out.println("- ControlService(), getServiceShutdown()");
-        return this._serviceShutdown;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
@@ -148,7 +180,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @return <code>boolean</code> value of the comparison
      */
-    private synchronized boolean commandPassword(StringTokenizer tokens,
+    private boolean commandPassword(StringTokenizer tokens,
             PrintWriter out) {
         System.out.println("- ControlService(), commandPassword(tokens, out)");
         // declare local evaluation for return
@@ -184,7 +216,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws Exception
      */
-    private synchronized void commandAddXMLFile(String configFilename,
+    private void commandAddXMLFile(String configFilename,
             PrintWriter out) throws Exception {
         System.out.println("- ControlService(), commandAddXMLFile(configFilename, out)");
         // local list to track the services which were created through this
@@ -259,7 +291,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * 20141119 ssd added to support direct xml configuration
      */
-    private synchronized void commandAddXMLString(String config,
+    private void commandAddXMLString(String config,
             PrintWriter out) throws Exception {
         System.out.println("- ControlService(), commandAddXMLString(config, out)");
         // get local storage and make sure it exists
@@ -293,7 +325,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws Exception
      */
-    private synchronized void commandAddConfig(String serviceName,
+    private void commandAddConfig(String serviceName,
             StringTokenizer tokens,
             PrintWriter out) throws Exception {
         System.out.println("- ControlService(), commandAddConfig(serviceName, tokens, out)");
@@ -441,7 +473,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public synchronized void commandRemove(StringTokenizer tokens,
+    public void commandRemove(StringTokenizer tokens,
             PrintWriter out) {
         System.out.println("- ControlService(), commandRemove(tokens, out)");
         // as long as there are tokens, process them
@@ -480,7 +512,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public synchronized void commandStop(StringTokenizer tokens, PrintWriter out) {
+    public void commandStop(StringTokenizer tokens, PrintWriter out) {
         System.out.println("- ControlService(), commandStop(tokens, out)");
         // as long as there are tokens, process them
         while (tokens.hasMoreTokens()) {
@@ -519,7 +551,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws java.lang.Exception
      */
-    public synchronized void commandStart(StringTokenizer tokens,
+    public void commandStart(StringTokenizer tokens,
             PrintWriter out)
             throws Exception {
         System.out.println("- ControlService(), commandStart(tokens, out)");
@@ -558,7 +590,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public synchronized void commandAttribute(StringTokenizer tokens,
+    public void commandAttribute(StringTokenizer tokens,
             PrintWriter out) {
         System.out.println("- ControlService(), commandAttribute(tokens, out)");
         // convert the token to int
@@ -579,7 +611,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public synchronized void commandStatus(StringTokenizer tokens,
+    public void commandStatus(StringTokenizer tokens,
             PrintWriter out) {
         System.out.println("- ControlService(), commandStatus(tokens, out)");
         // display status of the service
@@ -598,7 +630,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public synchronized void commandHelp(StringTokenizer tokens, PrintWriter out) {
+    public void commandHelp(StringTokenizer tokens, PrintWriter out) {
         System.out.println("- ControlService(), commandHelp(tokens, out)");
         // Display command syntax. Password not required
         out.print("COMMANDS:" + getRecordTerminator()
@@ -637,7 +669,7 @@ public class ControlService extends AbstractService implements IService {
      * @return <code>IService</code> object created or null value
      * @throws Exception
      */
-    public synchronized IService activateService(ServiceConfig config,
+    public IService activateService(ServiceConfig config,
             PrintWriter out) throws Exception {
         System.out.println("- ControlService(), activateService(config, out)");
         out.print(".. activating service (" + config.getServiceName() + ")"
@@ -719,7 +751,7 @@ public class ControlService extends AbstractService implements IService {
             // If there is already a client connected to this service, display
             // a message to this client and close the connection. We use a
             // synchronized block to prevent a race condition.
-            synchronized (this) {
+            synchronized (this._runtimeSync) {
                 // check if there is already a connection
                 if (getActiveConnections() > 1) {
                     // yes, there is already a connection, notify client and 

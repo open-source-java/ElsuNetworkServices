@@ -2,7 +2,7 @@ package elsu.network.services.test;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractConnection;
+import elsu.network.services.AbstractConnection;
 import elsu.network.services.core.AbstractService;
 import elsu.network.factory.ServiceFactory;
 import elsu.network.services.*;
@@ -16,6 +16,9 @@ import java.util.Map;
 public class ReverseService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -54,8 +57,14 @@ public class ReverseService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -64,8 +73,14 @@ public class ReverseService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+    private String getServiceShutdown() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 

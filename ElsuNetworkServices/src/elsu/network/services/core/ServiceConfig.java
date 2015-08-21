@@ -19,6 +19,9 @@ import java.util.*;
 public class ServiceConfig {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // store the name of the service, this is unique across the application
     private volatile String _serviceName = null;
 
@@ -82,79 +85,161 @@ public class ServiceConfig {
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    public synchronized Map<String, String> getAttributes() {
-        return _attributes;
-    }
-    public synchronized String getAttribute(String key) {
-        return _attributes.get(key);
+    public Map<String, String> getAttributes() {
+        Map<String, String> result = null;
+
+        synchronized (this._runtimeSync) {
+            result = this._attributes;
+        }
+
+        return result;
     }
 
-    public synchronized int getConnectionPort() {
-        return this._connectionPort;
+    public String getAttribute(String key) {
+        String result = "";
+
+        synchronized (this._runtimeSync) {
+            result = this._attributes.get(key);
+        }
+
+        return result;
     }
 
-    public synchronized void setConnectionPort(int port) {
-        this._connectionPort = port;
+    public int getConnectionPort() {
+        int result = 0;
+
+        synchronized (this._runtimeSync) {
+            result = this._connectionPort;
+        }
+
+        return result;
     }
 
-    public synchronized boolean isIgnoreConnectionLimit() {
-        return this._isIgnoreConnectionLimit;
+    public void setConnectionPort(int port) {
+        synchronized (this._runtimeSync) {
+            this._connectionPort = port;
+        }
     }
 
-    public synchronized boolean isIgnoreConnectionLimit(boolean ignore) {
-        this._isIgnoreConnectionLimit = ignore;
+    public boolean isIgnoreConnectionLimit() {
+        boolean result = false;
+
+        synchronized (this._runtimeSync) {
+            result = this._isIgnoreConnectionLimit;
+        }
+
+        return result;
+    }
+
+    public boolean isIgnoreConnectionLimit(boolean ignore) {
+        synchronized (this._runtimeSync) {
+            this._isIgnoreConnectionLimit = ignore;
+        }
+
         return isIgnoreConnectionLimit();
     }
 
-    public synchronized int getMaximumConnections() {
-        return this._maximumConnections;
+    public int getMaximumConnections() {
+        int result = 0;
+
+        synchronized (this._runtimeSync) {
+            result = this._maximumConnections;
+        }
+
+        return result;
     }
 
-    public synchronized void setMaximumConnections(int allowedMax) {
-        this._maximumConnections = allowedMax;
+    public void setMaximumConnections(int allowedMax) {
+        synchronized (this._runtimeSync) {
+            this._maximumConnections = allowedMax;
+        }
     }
 
-    public synchronized ArrayList<ServiceConfig> getPublishers() {
-        return this._publishers;
+    public ArrayList<ServiceConfig> getPublishers() {
+        ArrayList<ServiceConfig> result = null;
+
+        synchronized (this._runtimeSync) {
+            result = this._publishers;
+        }
+
+        return result;
     }
 
-    public synchronized String getServiceClass() {
-        return this._serviceClass;
+    public String getServiceClass() {
+        String result = "";
+
+        synchronized (this._runtimeSync) {
+            result = this._serviceClass;
+        }
+
+        return result;
     }
 
-    public synchronized void setServiceClass(String classRef) {
-        this._serviceClass = classRef;
+    public void setServiceClass(String classRef) {
+        synchronized (this._runtimeSync) {
+            this._serviceClass = classRef;
+        }
     }
 
-    public synchronized String getServiceName() {
-        return this._serviceName;
+    public String getServiceName() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceName;
+        }
+        
+        return result;
     }
 
-    public synchronized void setServiceName(String name) {
-        this._serviceName = name;
+    public void setServiceName(String name) {
+        synchronized (this._runtimeSync) {
+            this._serviceName = name;
+        }
     }
 
-    public synchronized ServiceType getServiceType() {
-        return _serviceType;
+    public ServiceType getServiceType() {
+        ServiceType result = _serviceType.SERVER;
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceType;
+        }
+        
+        return result;
     }
 
-    public synchronized ServiceStartupType getStartupType() {
-        return this._startupType;
+    public ServiceStartupType getStartupType() {
+        ServiceStartupType result = ServiceStartupType.DISABLED;
+        
+        synchronized (this._runtimeSync) {
+            result = this._startupType;
+        }
+        
+        return result;
     }
 
-    public synchronized void setStartupType(ServiceStartupType type) {
-        this._startupType = type;
+    public void setStartupType(ServiceStartupType type) {
+        synchronized (this._runtimeSync) {
+            this._startupType = type;
+        }
     }
 
-    public synchronized void setServiceType(ServiceType type) {
-        this._serviceType = type;
+    public void setServiceType(ServiceType type) {
+        synchronized (this._runtimeSync) {
+            this._serviceType = type;
+        }
     }
 
-    public synchronized ArrayList<ServiceConfig> getSubscribers() {
-        return this._subscribers;
+    public ArrayList<ServiceConfig> getSubscribers() {
+        ArrayList<ServiceConfig> result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._subscribers;
+        }
+        
+        return result;
     }
 
-    public synchronized ServiceConfig getSubscriber(int port) {
+    public ServiceConfig getSubscriber(int port) {
         ServiceConfig result = null;
 
         // loop through and create subscriber child services if defined
@@ -172,7 +257,7 @@ public class ServiceConfig {
         return result;
     }
 
-    public synchronized ServiceConfig getSubscriber(String name) {
+    public ServiceConfig getSubscriber(String name) {
         ServiceConfig result = null;
 
         // loop through and create subscriber child services if defined
@@ -190,7 +275,7 @@ public class ServiceConfig {
         return result;
     }
 
-    public synchronized ServiceConfig getPublisher(int port) {
+    public ServiceConfig getPublisher(int port) {
         ServiceConfig result = null;
 
         // loop through and create subscriber child services if defined
@@ -208,7 +293,7 @@ public class ServiceConfig {
         return result;
     }
 
-    public synchronized ServiceConfig getPublisher(String name) {
+    public ServiceConfig getPublisher(String name) {
         ServiceConfig result = null;
 
         // loop through and create subscriber child services if defined

@@ -3,7 +3,7 @@ package elsu.network.services.system;
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
 import elsu.network.services.core.AbstractService;
-import elsu.network.services.core.AbstractConnection;
+import elsu.network.services.AbstractConnection;
 import elsu.network.factory.ServiceFactory;
 import elsu.network.services.*;
 import java.io.*;
@@ -16,6 +16,9 @@ import java.util.*;
 public class TimeService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -56,9 +59,16 @@ public class TimeService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
+    private String getConnectionTerminator() {
         System.out.println("- TimeService(), getConnectionTerminator()");
-        return this._connectionTerminator;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -67,9 +77,16 @@ public class TimeService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
+    private String getServiceShutdown() {
         System.out.println("- TimeService(), getServiceShutdown()");
-        return this._serviceShutdown;
+        
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 

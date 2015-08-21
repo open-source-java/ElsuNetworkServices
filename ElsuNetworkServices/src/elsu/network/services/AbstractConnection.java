@@ -1,5 +1,6 @@
-package elsu.network.services.core;
+package elsu.network.services;
 
+import elsu.network.services.core.IService;
 import java.io.*;
 import java.net.*;
 
@@ -21,6 +22,9 @@ import java.net.*;
 public abstract class AbstractConnection extends Thread {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // service object which owns this connection
     private volatile IService _service = null;
 
@@ -84,8 +88,14 @@ public abstract class AbstractConnection extends Thread {
      *
      * @return <code>Socket</code> object for the connection.
      */
-    public synchronized Socket getClient() {
-        return this._client;
+    public Socket getClient() {
+        Socket result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._client;
+        }
+        
+        return result;
     }
 
     /**
@@ -93,8 +103,10 @@ public abstract class AbstractConnection extends Thread {
      *
      * @param socket
      */
-    protected synchronized void setClient(Socket socket) {
-        this._client = socket;
+    protected void setClient(Socket socket) {
+        synchronized (this._runtimeSync) {
+            this._client = socket;
+        }
     }
 
     /**
@@ -102,8 +114,14 @@ public abstract class AbstractConnection extends Thread {
      *
      * @return <code>IService</code> object which the connection is serving.
      */
-    public synchronized IService getService() {
-        return this._service;
+    public IService getService() {
+        IService result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._service;
+        }
+        
+        return result;
     }
     // </editor-fold>
 }

@@ -2,7 +2,7 @@ package elsu.network.services.system;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractConnection;
+import elsu.network.services.AbstractConnection;
 import elsu.network.services.core.AbstractService;
 import elsu.network.factory.ServiceFactory;
 import elsu.network.services.*;
@@ -17,6 +17,9 @@ public class GarbageCollectionService extends AbstractService
         implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -72,12 +75,24 @@ public class GarbageCollectionService extends AbstractService
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
-    private synchronized int getGCDelay() {
-        return this._gcDelay;
+    private int getGCDelay() {
+        int result = 0;
+        
+        synchronized (this._runtimeSync) {
+            result = this._gcDelay;
+        }
+        
+        return result;
     }
 
     /**
@@ -86,14 +101,20 @@ public class GarbageCollectionService extends AbstractService
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+    private String getServiceShutdown() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
     // <editor-fold desc="class methods">
     @Override
-    public synchronized void checkConnections() {
+    public void checkConnections() {
         if (isRunning()) {
             try {
                 if (getConnections().isEmpty()) {
@@ -165,7 +186,7 @@ public class GarbageCollectionService extends AbstractService
      * @throws java.lang.Exception equipment.
      */
     @Override
-    public synchronized void start() throws Exception {
+    public void start() throws Exception {
         super.start();
 
         checkConnections();

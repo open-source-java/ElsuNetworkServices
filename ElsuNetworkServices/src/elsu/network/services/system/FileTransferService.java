@@ -2,7 +2,7 @@ package elsu.network.services.system;
 
 import elsu.network.services.core.ServiceConfig;
 import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractConnection;
+import elsu.network.services.AbstractConnection;
 import elsu.network.services.core.AbstractService;
 import elsu.network.factory.ServiceFactory;
 import elsu.network.services.*;
@@ -17,6 +17,9 @@ import org.apache.commons.codec.binary.*;
 public class FileTransferService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // storage for service shutdown string when received terminates the service
     private volatile String _serviceShutdown = "#$#";
 
@@ -126,8 +129,14 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>int</code> value of the connection idle timeout
      */
-    private synchronized int getConnectionIdleTimeout() {
-        return this._connectionTimeout;
+    private int getConnectionIdleTimeout() {
+        int result = 0;
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTimeout;
+        }
+        
+        return result;
     }
 
     /**
@@ -137,8 +146,14 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the connection terminator
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -157,8 +172,14 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the local storage path
      */
-    private synchronized String getLocalStoreDirectory() {
-        return this._localStoreDirectory;
+    private String getLocalStoreDirectory() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._localStoreDirectory;
+        }
+        
+        return result;
     }
 
     /**
@@ -168,8 +189,14 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>Boolean</code> value of the useAlways variable.
      */
-    private synchronized Boolean getLocalStoreUseAlways() {
-        return this._localStoreUseAlways;
+    private Boolean getLocalStoreUseAlways() {
+        boolean result = false;
+        
+        synchronized (this._runtimeSync) {
+            result = this._localStoreUseAlways;
+        }
+        
+        return result;
     }
     // </editor-fold>
 

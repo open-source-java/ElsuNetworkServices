@@ -113,9 +113,16 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    public synchronized ConfigLoader getConfig() {
+    public ConfigLoader getConfig() {
         System.out.println("- ServiceFactory(), getConfig()");
-        return this._config;
+
+        ConfigLoader result = null;
+
+        synchronized (this._runtimeSync) {
+            result = this._config;
+        }
+
+        return result;
     }
 
     private void setConfig() {
@@ -152,9 +159,16 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param key is the property which is being searched
      * @return <code>String</code> value of the key
      */
-    public synchronized Object getProperty(String key) {
+    public Object getProperty(String key) {
         System.out.println("- ServiceFactory(), getProperty()");
-        return getConfig().getProperty(key);
+
+        Object result = null;
+
+        synchronized (this._runtimeSync) {
+            result = getConfig().getProperty(key);
+        }
+
+        return result;
     }
 
     /**
@@ -163,9 +177,16 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @return <code>Map<String, Object></code> with the global properties
      */
-    public synchronized Map<String, Object> getProperties() {
+    public Map<String, Object> getProperties() {
         System.out.println("- ServiceFactory(), getProperties()");
-        return getConfig().getProperties();
+
+        Map<String, Object> result = null;
+
+        synchronized (this._runtimeSync) {
+            result = getConfig().getProperties();
+        }
+
+        return result;
     }
 
     /**
@@ -176,9 +197,16 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @return      <code>int</code> value of the maximum connections
      */
-    public synchronized int getMaximumConnections() {
+    public int getMaximumConnections() {
         System.out.println("- ServiceFactory(), getMaximumConnections()");
-        return this._maximumConnections;
+
+        int result = 0;
+
+        synchronized (this._runtimeSync) {
+            result = this._maximumConnections;
+        }
+
+        return result;
     }
 
     /**
@@ -188,9 +216,12 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @param allowedMax value to set the maximum connections to
      */
-    public synchronized void setMaximumConnections(int allowedMax) {
+    public void setMaximumConnections(int allowedMax) {
         System.out.println("- ServiceFactory(), setMaximumConnections(allowedMax)");
-        this._maximumConnections = allowedMax;
+
+        synchronized (this._runtimeSync) {
+            this._maximumConnections = allowedMax;
+        }
     }
 
     /**
@@ -202,24 +233,28 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @return  <code>AbstractService</code> object
      */
-    public synchronized IService getService(String serviceName) {
+    public IService getService(String serviceName) {
         System.out.println("- ServiceFactory(), getService(serviceName)");
         IService result = null;
 
         // do not use iterator as changes to the hashMap can cause exceptions
         // when modified while looping
         ArrayList<Integer> svcList;
-        svcList = new ArrayList<>(getServices().keySet());
+        synchronized (this._runtimeSync) {
+            svcList = new ArrayList<>(getServices().keySet());
+        }
 
         // loop through the list of services and see if any match the name
         // provided
         for (Integer key : svcList) {
-            // key = port for the service
-            IService service = (IService) getServices().get(key);
+            synchronized (this._runtimeSync) {
+                // key = port for the service
+                IService service = (IService) getServices().get(key);
 
-            if (service.getServiceConfig().getServiceName().equals(serviceName)) {
-                result = service;
-                break;
+                if (service.getServiceConfig().getServiceName().equals(serviceName)) {
+                    result = service;
+                    break;
+                }
             }
 
             // yield processing to other threads
@@ -234,9 +269,16 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @return <code>Map</code> of the services
      */
-    public synchronized Map<Integer, IService> getServices() {
+    public Map<Integer, IService> getServices() {
         System.out.println("- ServiceFactory(), getServices()");
-        return this._services;
+
+        Map<Integer, IService> result = null;
+
+        synchronized (this._runtimeSync) {
+            result = this._services;
+        }
+
+        return result;
     }
 
     /**
@@ -247,27 +289,40 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @return <code>int</code> total value stored
      */
-    public synchronized int getServiceConnections() {
+    public int getServiceConnections() {
         System.out.println("- ServiceFactory(), getServiceConnections()");
-        return this._serviceConnections;
+
+        int result = 0;
+
+        synchronized (this._runtimeSync) {
+            result = this._serviceConnections;
+        }
+
+        return result;
     }
 
     /**
      * decreaseServiceAbstractConnections() allows services to update the value
      * when there is a change in the state of the connection.
      */
-    public synchronized void decreaseServiceConnections() {
+    public void decreaseServiceConnections() {
         System.out.println("- ServiceFactory(), decreaseServiceConnections()");
-        this._serviceConnections--;
+
+        synchronized (this._runtimeSync) {
+            this._serviceConnections--;
+        }
     }
 
     /**
      * increaseServiceAbstractConnections() allows services to update the value
      * when there is a change in the state of the connection.
      */
-    public synchronized void increaseServiceConnections() {
+    public void increaseServiceConnections() {
         System.out.println("- ServiceFactory(), increaseServiceConnections()");
-        this._serviceConnections++;
+
+        synchronized (this._runtimeSync) {
+            this._serviceConnections++;
+        }
     }
     // </editor-fold>
 
