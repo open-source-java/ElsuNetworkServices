@@ -25,16 +25,21 @@ public class ServiceStatusType {
      */
     private void initializeLocalProperties() {
         try {
-            EventStatusType.addStatusType("GETMAXIMUMCONNECTIONS", 7000);
-            EventStatusType.addStatusType("GETSERVICECONNECTIONS", 7001);
-            EventStatusType.addStatusType("GETPROPERTY", 7002);
-            EventStatusType.addStatusType("GETPROPERTIES", 7003);
-            EventStatusType.addStatusType("ADDSERVICE", 7004);
-            EventStatusType.addStatusType("DECREASESERVICECONNECTIONS", 7005);
-            EventStatusType.addStatusType("INCREASESERVICECONNECTIONS", 7006);
-            EventStatusType.addStatusType("LOGERROR", 7007);
-            EventStatusType.addStatusType("LOGDEBUG", 7008);
-            EventStatusType.addStatusType("LOGINFO", 7009);
+            EventStatusType.addStatusType("GETMAXIMUMCONNECTIONS", 7001);
+            EventStatusType.addStatusType("SETMAXIMUMCONNECTIONS", 7002);
+            EventStatusType.addStatusType("GETSERVICECONNECTIONS", 7003);
+            EventStatusType.addStatusType("GETPROPERTY", 7004);
+            EventStatusType.addStatusType("GETPROPERTIES", 7005);
+            EventStatusType.addStatusType("ADDSERVICE", 7006);
+            EventStatusType.addStatusType("DECREASESERVICECONNECTIONS", 7007);
+            EventStatusType.addStatusType("INCREASESERVICECONNECTIONS", 7008);
+            EventStatusType.addStatusType("LOGERROR", 7009);
+            EventStatusType.addStatusType("LOGDEBUG", 7010);
+            EventStatusType.addStatusType("LOGINFO", 7011);
+            EventStatusType.addStatusType("GETCONFIG", 7012);
+            EventStatusType.addStatusType("REMOVESERVICE", 7013);
+            EventStatusType.addStatusType("STARTSERVICE", 7014);
+            EventStatusType.addStatusType("TOSTRING", 7015);
         } catch (Exception ex) {
             //logError(getClass().toString()
             //        + ", initializeLocalProperties(), invalid connection.maximum, "

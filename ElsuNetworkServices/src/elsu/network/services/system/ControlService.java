@@ -1,12 +1,10 @@
 package elsu.network.services.system;
 
-import elsu.network.services.core.ServiceConfig;
-import elsu.network.services.core.IService;
-import elsu.network.services.core.AbstractConnection;
-import elsu.network.services.core.AbstractService;
-import elsu.network.core.ServiceStartupType;
-import elsu.network.factory.ServiceFactory;
+import elsu.network.services.core.*;
+import elsu.network.core.*;
+import elsu.network.factory.*;
 import elsu.common.*;
+import elsu.events.*;
 import elsu.network.services.*;
 import elsu.support.*;
 import java.io.*;
@@ -67,6 +65,10 @@ public class ControlService extends AbstractService implements IService {
     public ControlService(ServiceConfig serviceConfig) {
         // call the super class constructor
         super(null, serviceConfig);
+        System.out.println("- ControlService(serviceConfig)");
+
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**
@@ -78,7 +80,8 @@ public class ControlService extends AbstractService implements IService {
     @Override
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
-        
+        System.out.println("- ControlService(), initializeLocalProperties()");
+
         this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
                 = getProperty("connection.terminator").toString();
@@ -96,6 +99,7 @@ public class ControlService extends AbstractService implements IService {
      * @return <code>String</code> returns the connection terminator value.
      */
     private synchronized String getConnectionTerminator() {
+        System.out.println("- ControlService(), getConnectionTerminator()");
         return this._connectionTerminator;
     }
 
@@ -107,6 +111,7 @@ public class ControlService extends AbstractService implements IService {
      * @return <code>String</code> value of the password.
      */
     private synchronized String getPassword() {
+        System.out.println("- ControlService(), getPassword()");
         return this._password;
     }
 
@@ -117,6 +122,7 @@ public class ControlService extends AbstractService implements IService {
      * @return <code>String</code> value of the local store.
      */
     private synchronized String getLocalStorage() {
+        System.out.println("- ControlService(), getLocalStorage()");
         return this._localStorage;
     }
 
@@ -127,6 +133,7 @@ public class ControlService extends AbstractService implements IService {
      * @return <code>String</code> value of the shutdown string
      */
     private synchronized String getServiceShutdown() {
+        System.out.println("- ControlService(), getServiceShutdown()");
         return this._serviceShutdown;
     }
     // </editor-fold>
@@ -143,6 +150,7 @@ public class ControlService extends AbstractService implements IService {
      */
     private synchronized boolean commandPassword(StringTokenizer tokens,
             PrintWriter out) {
+        System.out.println("- ControlService(), commandPassword(tokens, out)");
         // declare local evaluation for return
         boolean result = false;
 
@@ -178,6 +186,7 @@ public class ControlService extends AbstractService implements IService {
      */
     private synchronized void commandAddXMLFile(String configFilename,
             PrintWriter out) throws Exception {
+        System.out.println("- ControlService(), commandAddXMLFile(configFilename, out)");
         // local list to track the services which were created through this
         // method
         ArrayList<IService> serviceList = new ArrayList<>();
@@ -252,6 +261,7 @@ public class ControlService extends AbstractService implements IService {
      */
     private synchronized void commandAddXMLString(String config,
             PrintWriter out) throws Exception {
+        System.out.println("- ControlService(), commandAddXMLString(config, out)");
         // get local storage and make sure it exists
         String lStore = getLocalStorage();
         new File(lStore).mkdirs();
@@ -286,16 +296,20 @@ public class ControlService extends AbstractService implements IService {
     private synchronized void commandAddConfig(String serviceName,
             StringTokenizer tokens,
             PrintWriter out) throws Exception {
+        System.out.println("- ControlService(), commandAddConfig(serviceName, tokens, out)");
+        // get config from factory for local use
+        ConfigLoader config = (ConfigLoader) notifyFactoryListener(this, EventStatusType.statusTypeFor("GETCONFIG"), null, null);
+
         // local list to track the services which were created through this
         // method and copies the existing properties of the service configurations
         ArrayList<String> spIterator;
-        spIterator = new ArrayList<>(getFactory().getConfig().getClassSet());
+        spIterator = new ArrayList<>(config.getClassSet());
 
         // for service config each item in the iterator, process the service
         for (String spObject : spIterator) {
             // convert the object as config item
             ServiceConfig configObject;
-            configObject = ServiceConfig.LoadConfig(getFactory().getConfig(), spObject);
+            configObject = ServiceConfig.LoadConfig(config, spObject);
 
             // if the service startup is not configured as disabled, process it
             if (configObject.getStartupType() != ServiceStartupType.DISABLED) {
@@ -429,13 +443,15 @@ public class ControlService extends AbstractService implements IService {
      */
     public synchronized void commandRemove(StringTokenizer tokens,
             PrintWriter out) {
+        System.out.println("- ControlService(), commandRemove(tokens, out)");
         // as long as there are tokens, process them
         while (tokens.hasMoreTokens()) {
             // convert the token to int
             int port = Integer.parseInt(tokens.nextToken());
 
             // remove port port port ...
-            if (getFactory().removeService(port, true)) {
+            // if(getFactory().removeService(port, true)) {
+            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, true})) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -465,6 +481,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      */
     public synchronized void commandStop(StringTokenizer tokens, PrintWriter out) {
+        System.out.println("- ControlService(), commandStop(tokens, out)");
         // as long as there are tokens, process them
         while (tokens.hasMoreTokens()) {
             // convert the token to int
@@ -472,7 +489,8 @@ public class ControlService extends AbstractService implements IService {
             port = Integer.parseInt(tokens.nextToken());;
 
             // remove port port port ...
-            if (getFactory().removeService(port, false)) {
+            //if (getFactory().removeService(port, false)) {
+            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, false})) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -504,6 +522,7 @@ public class ControlService extends AbstractService implements IService {
     public synchronized void commandStart(StringTokenizer tokens,
             PrintWriter out)
             throws Exception {
+        System.out.println("- ControlService(), commandStart(tokens, out)");
         // as long as there are tokens, process them
         while (tokens.hasMoreTokens()) {
             // convert the token to int
@@ -511,7 +530,8 @@ public class ControlService extends AbstractService implements IService {
             port = Integer.parseInt(tokens.nextToken());;
 
             // remove port port port ...
-            if (getFactory().startService(port)) {
+            //if (getFactory().startService(port)) {
+            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("STARTSERVICE"), null, port)) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -540,6 +560,7 @@ public class ControlService extends AbstractService implements IService {
      */
     public synchronized void commandAttribute(StringTokenizer tokens,
             PrintWriter out) {
+        System.out.println("- ControlService(), commandAttribute(tokens, out)");
         // convert the token to int
         int max = Integer.parseInt(tokens.nextToken());
 
@@ -560,8 +581,10 @@ public class ControlService extends AbstractService implements IService {
      */
     public synchronized void commandStatus(StringTokenizer tokens,
             PrintWriter out) {
+        System.out.println("- ControlService(), commandStatus(tokens, out)");
         // display status of the service
-        getFactory().toString(out);
+        //getFactory().toString(out);
+        notifyFactoryListener(this, EventStatusType.statusTypeFor("TOSTRING"), null, out);
 
         // return status back to the client
         out.print(getStatusOk() + getRecordTerminator());
@@ -576,6 +599,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      */
     public synchronized void commandHelp(StringTokenizer tokens, PrintWriter out) {
+        System.out.println("- ControlService(), commandHelp(tokens, out)");
         // Display command syntax. Password not required
         out.print("COMMANDS:" + getRecordTerminator()
                 + "\tadd <service> <port>" + getRecordTerminator()
@@ -615,6 +639,7 @@ public class ControlService extends AbstractService implements IService {
      */
     public synchronized IService activateService(ServiceConfig config,
             PrintWriter out) throws Exception {
+        System.out.println("- ControlService(), activateService(config, out)");
         out.print(".. activating service (" + config.getServiceName() + ")"
                 + getRecordTerminator());
         out.flush();
@@ -630,7 +655,11 @@ public class ControlService extends AbstractService implements IService {
         Object[] arguments = {config.getServiceClass(), config};
         IService service = (IService) cons.newInstance(arguments);
 
-        getFactory().addService(service);
+        // getFactory().addService(service);
+        Exception ex = (Exception)notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
+        if (ex != null) {
+            throw ex;
+        }
         return service;
     }
 
@@ -647,6 +676,7 @@ public class ControlService extends AbstractService implements IService {
      */
     @Override
     public void serve(AbstractConnection conn) throws Exception {
+        System.out.println("- ControlService(), serve(conn)");
         // local parameter for reader thread access, passes the connection 
         // object
         final Connection cConn = (Connection) conn;
@@ -850,11 +880,13 @@ public class ControlService extends AbstractService implements IService {
 
     @Override
     public void checkConnection(AbstractConnection connection) {
+        System.out.println("- ControlService(), checkConnection()");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void checkConnections() {
+        System.out.println("- ControlService(), checkConnections()");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

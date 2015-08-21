@@ -57,7 +57,7 @@ public class FileTransferService extends AbstractService implements IService {
         super(threadGroup, serviceConfig);
 
         // local config properties for local reference by class method
-        initializeLocalProperties();
+        // initializeLocalProperties();
     }
 
     /**

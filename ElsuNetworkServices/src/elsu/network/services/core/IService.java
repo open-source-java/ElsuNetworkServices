@@ -1,6 +1,7 @@
 package elsu.network.services.core;
 
-import elsu.network.services.core.AbstractConnection;
+import elsu.network.services.*;
+import elsu.network.services.core.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -13,26 +14,38 @@ import java.util.*;
  */
 public interface IService {
 
-    public ServiceConfig getServiceConfig();
+    void addConnection(AbstractConnection connection) throws Exception;
 
-    public boolean isRunning();
-
-    public void start() throws Exception;
-
-    public void shutdown();
-    
-    public void logDebug(Object obj);
-
-    public void logError(Object obj);
-
-    public void logInfo(Object obj);
-
-    public void addConnection(Socket socket,
+    void addConnection(Socket socket,
             AbstractConnection connection) throws Exception;
+        
+    void checkConnection(AbstractConnection conn);
 
-    public ThreadGroup getThreadGroup();
+    void checkConnections();
 
-    public void removeConnection(AbstractConnection conn);
+    ServiceConfig getChildConfig();
 
-    public void serve(AbstractConnection conn) throws Exception;
+    ServiceListener getListener();
+
+    ServiceConfig getServiceConfig();
+
+    ThreadGroup getThreadGroup();
+
+    boolean isRunning();
+    
+    void logDebug(Object obj);
+
+    void logError(Object obj);
+
+    void logInfo(Object obj);
+
+    void removeConnection(AbstractConnection conn);
+
+    void start() throws Exception;
+
+    void shutdown();
+
+    void serve(AbstractConnection conn) throws Exception;
+
+    void toString(PrintWriter out);
 }

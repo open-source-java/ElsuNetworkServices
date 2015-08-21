@@ -36,7 +36,8 @@ public class StateService extends AbstractService implements IService {
         // call the super class constructor
         super(threadGroup, serviceConfig);
 
-        initializeLocalProperties();
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**

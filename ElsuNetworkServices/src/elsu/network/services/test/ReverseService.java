@@ -27,8 +27,8 @@ public class ReverseService extends AbstractService implements IService {
     public ReverseService(String threadGroup, ServiceConfig serviceConfig) {
         super(threadGroup, serviceConfig);
 
-        // call the super class constructor
-        initializeLocalProperties();
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**

@@ -37,6 +37,8 @@ import java.util.*;
 public class ServiceFactory extends AbstractEventManager implements IEventPublisher, IEventSubscriber {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
     // configuration reference object
     private ConfigLoader _config = null;
     // hashMap to track all services created 
@@ -60,6 +62,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @see ConfigLoader
      */
     public ServiceFactory() throws Exception {
+        System.out.println("- ServiceFactory()");
         setConfig();
 
         // load configuration properties
@@ -67,6 +70,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
 
     public ServiceFactory(String config) throws Exception {
+        System.out.println("- ServiceFactory(config)");
         setConfig(config);
 
         // load configuration properties
@@ -74,6 +78,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
 
     public ServiceFactory(String config, String[] suppresspath) throws Exception {
+        System.out.println("- ServiceFactory(config, suppresspath)");
         setConfig(config, suppresspath);
 
         // load configuration properties
@@ -87,6 +92,12 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      */
     private void initializeLocalProperties() {
+        System.out.println("- ServiceFactory(), initializeLocalProperties()");
+        // update the service status types, this is a throw away initialization
+        // since the class initializer calls static method to update enum 
+        // properties for Events
+        ServiceStatusType sst = new ServiceStatusType();
+
         try {
             this._maximumConnections = Integer.parseInt(
                     getConfig().getProperty("connection.maximum").toString());
@@ -103,10 +114,12 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
     // <editor-fold desc="class getter/setters">
     public synchronized ConfigLoader getConfig() {
+        System.out.println("- ServiceFactory(), getConfig()");
         return this._config;
     }
 
     private void setConfig() {
+        System.out.println("- ServiceFactory(), setConfig()");
         try {
             this._config = new ConfigLoader("", null);
         } catch (Exception ex) {
@@ -115,6 +128,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
 
     private void setConfig(String config) {
+        System.out.println("- ServiceFactory(), setConfig(config)");
         try {
             this._config = new ConfigLoader(config, null);
         } catch (Exception ex) {
@@ -123,6 +137,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
 
     private void setConfig(String config, String[] suppressPath) {
+        System.out.println("- ServiceFactory(), setConfig(config, suppressPath)");
         try {
             this._config = new ConfigLoader(config, suppressPath);
         } catch (Exception ex) {
@@ -138,6 +153,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return <code>String</code> value of the key
      */
     public synchronized Object getProperty(String key) {
+        System.out.println("- ServiceFactory(), getProperty()");
         return getConfig().getProperty(key);
     }
 
@@ -148,6 +164,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return <code>Map<String, Object></code> with the global properties
      */
     public synchronized Map<String, Object> getProperties() {
+        System.out.println("- ServiceFactory(), getProperties()");
         return getConfig().getProperties();
     }
 
@@ -160,6 +177,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return      <code>int</code> value of the maximum connections
      */
     public synchronized int getMaximumConnections() {
+        System.out.println("- ServiceFactory(), getMaximumConnections()");
         return this._maximumConnections;
     }
 
@@ -171,6 +189,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param allowedMax value to set the maximum connections to
      */
     public synchronized void setMaximumConnections(int allowedMax) {
+        System.out.println("- ServiceFactory(), setMaximumConnections(allowedMax)");
         this._maximumConnections = allowedMax;
     }
 
@@ -184,6 +203,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return  <code>AbstractService</code> object
      */
     public synchronized IService getService(String serviceName) {
+        System.out.println("- ServiceFactory(), getService(serviceName)");
         IService result = null;
 
         // do not use iterator as changes to the hashMap can cause exceptions
@@ -195,7 +215,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         // provided
         for (Integer key : svcList) {
             // key = port for the service
-            IService service = (AbstractService) getServices().get(key);
+            IService service = (IService) getServices().get(key);
 
             if (service.getServiceConfig().getServiceName().equals(serviceName)) {
                 result = service;
@@ -215,6 +235,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return <code>Map</code> of the services
      */
     public synchronized Map<Integer, IService> getServices() {
+        System.out.println("- ServiceFactory(), getServices()");
         return this._services;
     }
 
@@ -227,6 +248,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return <code>int</code> total value stored
      */
     public synchronized int getServiceConnections() {
+        System.out.println("- ServiceFactory(), getServiceConnections()");
         return this._serviceConnections;
     }
 
@@ -235,6 +257,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * when there is a change in the state of the connection.
      */
     public synchronized void decreaseServiceConnections() {
+        System.out.println("- ServiceFactory(), decreaseServiceConnections()");
         this._serviceConnections--;
     }
 
@@ -243,6 +266,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * when there is a change in the state of the connection.
      */
     public synchronized void increaseServiceConnections() {
+        System.out.println("- ServiceFactory(), increaseServiceConnections()");
         this._serviceConnections++;
     }
     // </editor-fold>
@@ -257,12 +281,13 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * are just added to the list, while, services configured for Automatic
      * startup are started by calling their start() method.
      *
-     * @param service is the service object which needs to be managed
-     * service is configured as a SERVER service.
+     * @param service is the service object which needs to be managed service is
+     * configured as a SERVER service.
      * @throws java.lang.Exception
      */
     public synchronized void addService(IService service)
             throws Exception {
+        System.out.println("- ServiceFactory(), addService(service)");
         // convert to object for comparison in the hashMap
         Integer port = new Integer(service.getServiceConfig().getConnectionPort());
 
@@ -276,7 +301,8 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
         // check if the service exists by its user name in the services hashMap
         // if service name is duplicated, log error and return
-        if (getService(service.getServiceConfig().getServiceName()) != null) {
+        String serviceName = service.getServiceConfig().getServiceName();
+        if (getService(serviceName) != null) {
             logError(getClass().toString() + "//addService//Name "
                     + service.getServiceConfig().getServiceName()
                     + " already in use");
@@ -322,12 +348,13 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return <code>boolean</code> if the service was successfully removed.
      */
     public synchronized boolean removeService(int port, boolean delete) {
+        System.out.println("- ServiceFactory(), removeService(port, delete)");
         // convert to object for comparison in the hashMap
         Integer key = new Integer(port);
 
         // retrive the service object from the service list
         // if port does not exist, log error and return
-        AbstractService service = (AbstractService) getServices().get(key);
+        IService service = (IService) getServices().get(key);
         if (service == null) {
             return false;
         }
@@ -365,12 +392,13 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      */
     public synchronized boolean startService(int port)
             throws Exception {
+        System.out.println("- ServiceFactory(), startService(port)");
         // convert to object for comparison in the hashMap
         Integer key = new Integer(port);
 
         // retrive the service object from the service list
         // if port does not exist, log error and return
-        AbstractService service = (AbstractService) getServices().get(key);
+        IService service = (IService) getServices().get(key);
         if (service == null) {
             logError(getClass().toString() + "//startService//Port " + port
                     + " not found.");
@@ -412,6 +440,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @throws Exception
      */
     public synchronized void initializeServices() throws Exception {
+        System.out.println("- ServiceFactory(), initializeServices()");
         try {
             ServiceConfig config = null;
             String serviceName = "";
@@ -452,6 +481,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
                                 // connect the factory event listeners
                                 ((IEventPublisher) service).addEventListener(this);
+                                addEventListener((IEventSubscriber) service);
 
                                 // add the service to the service list in the factory
                                 addService(service);
@@ -488,6 +518,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
                             // connect the factory event listeners
                             ((IEventPublisher) service).addEventListener(this);
+                            addEventListener((IEventSubscriber) service);
 
                             // add the service to the service list in the factory
                             addService(service);
@@ -567,6 +598,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * gracefully signal shutdown to all running services.
      */
     public synchronized void shutdownServices() {
+        System.out.println("- ServiceFactory(), shutdownServices()");
         // collect the list of all services into array list for processing
         // do not use iterator since control service can change the scope
         // of the iterate and will result in exceptions.
@@ -601,6 +633,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * the log file
      */
     public synchronized void logDebug(Object info) {
+        System.out.println("- ServiceFactory(), logDebug()");
         getConfig().logDebug(info.toString());
     }
 
@@ -616,6 +649,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * the log file
      */
     public synchronized void logError(Object info) {
+        System.out.println("- ServiceFactory(), logError()");
         getConfig().logError(info.toString());
     }
 
@@ -631,6 +665,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * the log file
      */
     public synchronized void logInfo(Object info) {
+        System.out.println("- ServiceFactory(), logInfo()");
         getConfig().logInfo(info.toString());
     }
     // </editor-fold>
@@ -638,6 +673,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     // <editor-fold desc="class event listener">
     @Override
     public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
+        System.out.println("- ServiceFactory(), EventHandler(sender, status, message, o)");
         Object result = null;
 
         if (sender instanceof ServiceFactory) {
@@ -657,14 +693,72 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
             return null;
         } else if (sender instanceof IService) {
-            switch (EventStatusType.valueOf(status.getName()).getId()) {
-                case 7000:
-                    return getMaximumConnections();
+            switch (status.getId()) {
+                case 7001:  // GETMAXIMUMCONNECTIONS
+                    result = getMaximumConnections();
+                    break;
+                case 7002:  // SETMAXIMUMCONNECTIONS
+                    setMaximumConnections(Integer.valueOf(o.toString()));
+                    break;
+                case 7003:  // GETSERVICECONNECTIONS
+                    getServiceConnections();
+                    break;
+                case 7004:  // GETPROPERTY
+                    result = getProperty(o.toString());
+                    break;
+                case 7005:  // GETPROPERTIES
+                    result = getProperties();
+                    break;
+                case 7006:  // ADDSERVICE
+                    try {
+                        addService((IService) o);
+                    } catch (Exception ex) {
+                        result = new Exception(getClass().getName() + ", EventHandler(), "
+                                + "addService failed.");
+                    }
+                    break;
+                case 7007:  // DECREASESERVICECONNECTIONS
+                    decreaseServiceConnections();
+                    break;
+                case 7008:  // INCREASESERVICECONNECTIONS
+                    increaseServiceConnections();
+                    break;
+                case 7009:  // LOGERROR
+                    logError(message);
+                    break;
+                case 7010:  // LOGDEBUG
+                    logDebug(message);
+                    break;
+                case 7011:  // LOGINFO
+                    logInfo(message);
+                    break;
+                case 7012:  // GETCONFIG
+                    getConfig();
+                    break;
+                case 7013:  // REMOVESERVICE
+                    Object[] to = (Object[]) o;
+                    result = removeService(Integer.valueOf(to[0].toString()), (boolean) to[1]);
+                    break;
+                case 7014:  // STARTSERVICE
+                    try {
+                        result = startService((int) o);
+                    } catch (Exception ex) {
+                        result = new Exception(getClass().getName() + ", EventHandler(), "
+                                + "addService failed.");
+                    }
+                    break;
+                case 7015:  // TOSTRING
+                    if (o != null) {
+                        toString((PrintWriter) o);
+                    } else {
+                        toString();
+                    }
+                    break;
                 default:
                     break;
             }
         }
-        
+
         return result;
     }
     // </editor-fold>
@@ -677,6 +771,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      */
     @Override
     public synchronized String toString() {
+        System.out.println("- ServiceFactory(), toString()");
         // create string builder to store the results
         StringBuilder result = new StringBuilder();
 
@@ -699,7 +794,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
             // Integer key = Integer.parseInt(svc.toString());
 
             // key = port for the service
-            AbstractService service = (AbstractService) getServices().get(key);
+            IService service = (IService) getServices().get(key);
 
             // call the service toString() method to get the service
             // string representation
@@ -729,6 +824,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param out is the output stream where the data will sent.
      */
     public synchronized void toString(PrintWriter out) {
+        System.out.println("- ServiceFactory(), toString(out)");
         // retrieve the toString() representation of this object and write
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
