@@ -60,7 +60,6 @@ public abstract class AbstractServiceRuntimeProperties
 
     // <editor-fold desc="class getter/setters">
     public int getActiveConnections() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getActiveConnections()");
         int result = 0;
 
         synchronized (this._runtimeSync) {
@@ -71,7 +70,6 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     public synchronized Date getDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getDate()");
         Date result = null;
 
         synchronized (this._runtimeSync) {
@@ -82,13 +80,11 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected void setDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), setDate()");
         this._date = new Date();
         setLastActionDate();
     }
 
     public Date getLastActionDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getLastActionDate()");
         Date result = null;
 
         synchronized (this._runtimeSync) {
@@ -99,14 +95,10 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     private void setLastActionDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), setLastActionDate()");
-
         this._lastActionDate = new Date();
     }
 
     public Date getReceiveDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getReceiveDate()");
-
         Date result = null;
 
         synchronized (this._runtimeSync) {
@@ -117,14 +109,11 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected void setReceiveDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), setReceiveDate()");
         this._receiveDate = new Date();
         setLastActionDate();
     }
 
     public boolean isRunning() {
-        System.out.println("- AbstractServiceRuntimeProperties(), isRunning()");
-
         boolean result = false;
 
         synchronized (this._runtimeSync) {
@@ -135,15 +124,12 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected boolean isRunning(boolean running) {
-        System.out.println("- AbstractServiceRuntimeProperties(), isRunning(running)");
         this._isRunning = running;
         setDate();
         return isRunning();
     }
 
     public long getSequenceId() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getSequenceId()");
-        
         long result = 0L;
         
         synchronized(this._runtimeSync) {
@@ -154,8 +140,6 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected long setSequenceId() {
-        System.out.println("- AbstractServiceRuntimeProperties(), setSequenceId()");
-        
         synchronized(this._runtimeSync) {
             this._sequenceId++;
         }
@@ -164,13 +148,10 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected void setSequenceId(long newId) {
-        System.out.println("- AbstractServiceRuntimeProperties(), setSequenceId(newId)");
         this._sequenceId = newId;
     }
 
     public Date getSentDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getSentDate()");
-        
         Date result = null;
         
         synchronized(this._runtimeSync) {
@@ -181,14 +162,11 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected void setSentDate() {
-        System.out.println("- AbstractServiceRuntimeProperties(), setSentDate()");
         this._sentDate = new Date();
         setLastActionDate();
     }
 
     public ThreadGroup getThreadGroup() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getThreadGroup()");
-        
         ThreadGroup result = null;
         
         synchronized(this._runtimeSync) {
@@ -199,13 +177,10 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     protected void setThreadGroup(ThreadGroup group) {
-        System.out.println("- AbstractServiceRuntimeProperties(), setThreadGroup()");
         this._threadGroup = group;
     }
 
     public long getTotalConnections() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getTotalConnections()");
-        
         long result = 0;
         
         synchronized(this._runtimeSync) {
@@ -216,8 +191,6 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     public long getTotalMessagesErrored() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getTotalMessagesErrored()");
-        
         long result = 0;
         
         synchronized(this._runtimeSync) {
@@ -228,8 +201,6 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     public long getTotalMessagesReceived() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getTotalMessagesReceived()");
-        
         long result = 0;
         
         synchronized(this._runtimeSync) {
@@ -240,8 +211,6 @@ public abstract class AbstractServiceRuntimeProperties
     }
 
     public long getTotalMessagesSent() {
-        System.out.println("- AbstractServiceRuntimeProperties(), getTotalMessagesSent()");
-        
         long result = 0;
         
         synchronized(this._runtimeSync) {
@@ -254,31 +223,26 @@ public abstract class AbstractServiceRuntimeProperties
 
     // <editor-fold desc="class methods">
     protected void decreaseActiveConnections() {
-        System.out.println("- AbstractServiceRuntimeProperties(), decreaseActiveConnections()");
         this._activeConnections--;
         setLastActionDate();
     }
 
     protected void increaseActiveConnections() {
-        System.out.println("- AbstractServiceRuntimeProperties(), increaseActiveConnections()");
         this._activeConnections++;
         setLastActionDate();
     }
 
     protected void increaseTotalMessagesErrored() {
-        System.out.println("- AbstractServiceRuntimeProperties(), increaseTotalMessagesErrored()");
         this._totalMessagesErrored++;
         setLastActionDate();
     }
 
     protected void increaseTotalMessagesReceived() {
-        System.out.println("- AbstractServiceRuntimeProperties(), increaseTotalMessagesReceived()");
         this._totalMessgesReceived++;
         setReceiveDate();
     }
 
     protected void increaseTotalMessagesSent() {
-        System.out.println("- AbstractServiceRuntimeProperties(), increaseTotalMessagesSent()");
         this._totalMessgesSent++;
         setSentDate();
     }
@@ -286,7 +250,6 @@ public abstract class AbstractServiceRuntimeProperties
 
     @Override
     public String toString() {
-        System.out.println("- AbstractServiceRuntimeProperties(), toString()");
         StringBuilder result = new StringBuilder();
 
         result.append("<object attr='").append(getClass().getName()).append("'>");

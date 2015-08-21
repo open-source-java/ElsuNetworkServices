@@ -68,7 +68,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
      * @param serviceConfig is the configuration object loaded from app.config
      */
     public AbstractServiceProperties(ServiceConfig serviceConfig) {
-        System.out.println("- AbstractServiceProperties()");
         // store the service configuration
         this._serviceConfig = serviceConfig;
 
@@ -80,8 +79,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
 
     // <editor-fold desc="class getter/setters">
     public Set<AbstractConnection> getConnections() {
-        System.out.println("- AbstractServiceProperties(), getConnections()");
-        
         Set<AbstractConnection> result = null;
 
         synchronized(this._runtimeSync) {
@@ -92,8 +89,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     }
 
     public String getDatetimeFormat() {
-        System.out.println("- AbstractServiceProperties(), getDatetimeFormat()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -103,8 +98,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setDateTimeFormat(String format) {
-        System.out.println("- AbstractServiceProperties(), setDateTimeFormat(format)");
-        
         synchronized(this._runtimeSync) {
             this._datetimeFormat = format;
         }
@@ -119,8 +112,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     //}
 
     public String getFieldDelimiter() {
-        System.out.println("- AbstractServiceProperties(), getFieldDelimiter()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -130,13 +121,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setFieldDelimiter(String delimiter) {
-        System.out.println("- AbstractServiceProperties(), setFieldDelimiter(delimiter)");
         this._fieldDelimiter = delimiter;
     }
 
     public Object getMonitor() {
-        System.out.println("- AbstractServiceProperties(), getMonitor()");
-        
         Object result = null;
         
         synchronized(this._runtimeSync) {
@@ -147,8 +135,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     }
 
     public String getRecordTerminator() {
-        System.out.println("- AbstractServiceProperties(), getRecordTerminator()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -158,13 +144,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setRecordTerminator(String terminator) {
-        System.out.println("- AbstractServiceProperties(), setRecordTerminator(terminator)");
         this._recordTerminator = terminator;
     }
 
     public char getRecordTerminatorChar() {
-        System.out.println("- AbstractServiceProperties(), getRecordTerminatorChar()");
-        
         char result = '\0';
         
         synchronized(this._runtimeSync) {
@@ -175,8 +158,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     }
 
     public ServiceConfig getServiceConfig() {
-        System.out.println("- AbstractServiceProperties(), getServiceConfig()");
-        
         ServiceConfig result = null;
         
         synchronized(this._runtimeSync) {
@@ -187,8 +168,6 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     }
 
     public String getStatusDatabaseError() {
-        System.out.println("- AbstractServiceProperties(), getStatusDatabaseError()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -198,13 +177,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusDatabaseError(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusDatabaseError(status)");
         this._statusDatabaseError = status;
     }
 
     public String getStatusInvalidContent() {
-        System.out.println("- AbstractServiceProperties(), getStatusInvalidContent()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -214,13 +190,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusInvalidContent(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusInvalidContent(status)");
         this._statusInvalidContent = status;
     }
 
     public String getStatusOk() {
-        System.out.println("- AbstractServiceProperties(), getStatusOk()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -230,13 +203,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusOk(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusOk(status)");
         this._statusOk = status;
     }
 
     public String getStatusRequestTimeout() {
-        System.out.println("- AbstractServiceProperties(), getStatusRequestTimeout()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -246,13 +216,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusRequestTimeout(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusRequestTimeout(status)");
         this._statusRequestTimeout = status;
     }
 
     public String getStatusSystemError() {
-        System.out.println("- AbstractServiceProperties(), getStatusSystemError()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -262,13 +229,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusSystemError(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusSystemError(status)");
         this._statusSystemError = status;
     }
 
     public String getStatusUnAuthorized() {
-        System.out.println("- AbstractServiceProperties(), getStatusUnAuthorized()");
-        
         String result = "";
         
         synchronized(this._runtimeSync) {
@@ -278,14 +242,12 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         return result;
     }
     protected void setStatusUnAuthorized(String status) {
-        System.out.println("- AbstractServiceProperties(), setStatusUnAuthorized(status)");
         this._statusUnAuthorized = status;
     }
     // </editor-fold>
 
     @Override
     public String toString() {
-        System.out.println("- AbstractServiceProperties(), toString()");
         StringBuilder result = new StringBuilder();
 
         result.append("<object attr='").append(getClass().getName()).append("'>");

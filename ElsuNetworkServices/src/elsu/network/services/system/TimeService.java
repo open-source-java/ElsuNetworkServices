@@ -29,8 +29,7 @@ public class TimeService extends AbstractService implements IService {
     // <editor-fold desc="class constructor destructor">
     public TimeService(String threadGroup, ServiceConfig serviceConfig) {
         super(threadGroup, serviceConfig);
-        System.out.println("- TimeService(threadGroup, serviceConfig)");
-
+        
         // call the super class constructor
         // initializeLocalProperties();
     }
@@ -44,8 +43,7 @@ public class TimeService extends AbstractService implements IService {
     @Override
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
-        System.out.println("- TimeService(), initializeLocalProperties()");
-
+        
         this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
                 = getProperty("connection.terminator").toString();
@@ -60,8 +58,6 @@ public class TimeService extends AbstractService implements IService {
      * @return <code>String</code> returns the connection terminator value.
      */
     private String getConnectionTerminator() {
-        System.out.println("- TimeService(), getConnectionTerminator()");
-        
         String result = "";
         
         synchronized (this._runtimeSync) {
@@ -78,8 +74,6 @@ public class TimeService extends AbstractService implements IService {
      * @return <code>String</code> value of the shutdown string
      */
     private String getServiceShutdown() {
-        System.out.println("- TimeService(), getServiceShutdown()");
-        
         String result = "";
         
         synchronized (this._runtimeSync) {
@@ -105,7 +99,6 @@ public class TimeService extends AbstractService implements IService {
      */
     @Override
     public void serve(AbstractConnection conn) throws Exception {
-        System.out.println("- TimeService(), serve(conn)");
         // local parameter for reader thread access, passes the connection 
         // object
         final Connection cConn = (Connection) conn;
@@ -156,13 +149,11 @@ public class TimeService extends AbstractService implements IService {
 
     @Override
     public void checkConnection(AbstractConnection connection) {
-        System.out.println("- TimeService(), checkConnection()");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void checkConnections() {
-        System.out.println("- TimeService(), checkConnections()");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

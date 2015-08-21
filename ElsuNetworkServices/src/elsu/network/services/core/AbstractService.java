@@ -61,7 +61,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     public AbstractService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
         super(serviceConfig);
-        System.out.println("- AbstractService(threadGroup, serviceConfig)");
 
         // store the thread group for use by other objects
         setThreadGroup(new ThreadGroup(threadGroup));
@@ -80,7 +79,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      *
      */
     protected void initializeLocalProperties() {
-        System.out.println("- AbstractService(), initializeLocalProperties()");
         // initialize shared/global service properties 
         setDateTimeFormat(getProperty("message.datetimeFormat").toString());
         setFieldDelimiter(getProperties().get("record.field.delimiter").toString());
@@ -124,7 +122,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     protected void finalize() throws Throwable {
-        System.out.println("- AbstractService(), finalize()");
         try {
             shutdown();
         } finally {
@@ -135,27 +132,22 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     // <editor-fold desc="class factory getter/setters">
     public int getMaximumConnections() {
-        System.out.println("- AbstractService(), getMaximumConnections()");
         return Integer.valueOf(notifyFactoryListener(this, EventStatusType.statusTypeFor("GETMAXIMUMCONNECTIONS"), null, null).toString());
     }
 
     public void setMaximumConnections(int count) {
-        System.out.println("- AbstractService(), setMaximumConnections()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("SETMAXIMUMCONNECTIONS"), null, count);
     }
 
     public int getServiceConnections() {
-        System.out.println("- AbstractService(), getServiceConnections()");
         return Integer.valueOf(notifyFactoryListener(this, EventStatusType.statusTypeFor("GETSERVICECONNECTIONS"), null, null).toString());
     }
 
     public Object getProperty(String key) {
-        System.out.println("- AbstractService(), getProperty(key)");
         return notifyFactoryListener(this, EventStatusType.statusTypeFor("GETPROPERTY"), null, key).toString();
     }
 
     public Map<String, Object> getProperties() {
-        System.out.println("- AbstractService(), getProperties()");
         Object result = notifyFactoryListener(this, EventStatusType.statusTypeFor("GETPROPERTIES"), null, null);
 
         // typesafe return toensure to protect from runtime error 
@@ -167,7 +159,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     public void addService(IService service) throws Exception {
-        System.out.println("- AbstractService(), addService(service)");
         Exception ex = (Exception) notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
         if (ex != null) {
             throw ex;
@@ -175,12 +166,10 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     public void decreaseServiceConnections() {
-        System.out.println("- AbstractService(), decreaseServiceConnections()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("DECREASESERVICECONNECTIONS"), null, null);
     }
 
     public void increaseServiceConnections() {
-        System.out.println("- AbstractService(), increaseServiceConnections()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("INCREASESERVICECONNECTIONS"), null, null);
     }
 
@@ -191,7 +180,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logDebug(Object obj) {
-        System.out.println("- AbstractService(), logDebug()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGDEBUG"), obj.toString(), null);
     }
 
@@ -202,7 +190,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logError(Object obj) {
-        System.out.println("- AbstractService(), logError()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGERROR"), obj.toString(), null);
     }
 
@@ -213,7 +200,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logInfo(Object obj) {
-        System.out.println("- AbstractService(), logInfo()");
         notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGINFO"), obj.toString(), null);
     }
 
@@ -228,8 +214,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public ServiceConfig getChildConfig() {
-        System.out.println("- AbstractService(), getChildConfig()");
-
         ServiceConfig result = null;
 
         synchronized (this._runtimeSync) {
@@ -247,7 +231,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param config
      */
     protected void setChildConfig(ServiceConfig config) {
-        System.out.println("- AbstractService(), setChildConfig(config)");
         synchronized (this._runtimeSync) {
             this._childConfig = config;
         }
@@ -261,7 +244,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @return <code>Map</code> returns the collection of the child services.
      */
     public Map<Integer, IService> getChildServices() {
-        System.out.println("- AbstractService(), getChildServices()");
         return _childServices;
     }
 
@@ -273,8 +255,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public ServiceListener getListener() {
-        System.out.println("- AbstractService(), getListener()");
-
         ServiceListener result = null;
 
         synchronized (this._runtimeSync) {
@@ -293,8 +273,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @return <code>boolean</code> status of the listener
      */
     public boolean isListener() {
-        System.out.println("- AbstractService(), isListener()");
-
         boolean result = false;
 
         synchronized (this._runtimeSync) {
@@ -313,7 +291,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @return <code>boolean</code> status of the listener
      */
     public boolean isListener(boolean active) {
-        System.out.println("- AbstractService(), isListener(active)");
         synchronized (this._runtimeSync) {
             this._isListener = active;
         }
@@ -328,8 +305,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @return <code>IService</code> returns the service object
      */
     public IService getParentService() {
-        System.out.println("- AbstractService(), getParentService()");
-
         IService result = null;
 
         synchronized (this._runtimeSync) {
@@ -346,7 +321,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param service is the object reference of the parent service
      */
     protected void setParentService(IService service) {
-        System.out.println("- AbstractService(), setParentService(service)");
         synchronized (this._runtimeSync) {
             this._parentService = service;
         }
@@ -366,7 +340,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     @Override
     public void addConnection(AbstractConnection connection)
             throws Exception {
-        System.out.println("- AbstractService(), addConnection(connection)");
         addConnection(null, connection);
     }
 
@@ -382,7 +355,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     @Override
     public void addConnection(Socket socket,
             AbstractConnection connection) throws Exception {
-        System.out.println("- AbstractService(), addConnection(socket, connection)");
         // if the max connection limit for the service is not zero and the 
         // total application connection count is greater than or equal to the 
         // max connections then raise exception
@@ -543,7 +515,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public void removeConnection(AbstractConnection connection) {
-        System.out.println("- AbstractService(), removeConnection(connection)");
         // check to make sure the connections streams are closed
         // they should be if this was called from a service
         try {
@@ -611,7 +582,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     public void addChildService(IService service, int port)
             throws Exception {
-        System.out.println("- AbstractService(), addChildService(service, port)");
         // key for hash table lookup
         Integer key = new Integer(port);
 
@@ -642,7 +612,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @return
      */
     public boolean removeChildService(int port) {
-        System.out.println("- AbstractService(), removeChildService(port)");
         // key for hash table lookup
         Integer key = new Integer(port);
 
@@ -684,7 +653,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public void start() throws Exception {
-        System.out.println("- AbstractService(), start()");
         // set the service running state to true
         isRunning(true);
 
@@ -725,7 +693,6 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     @Override
     public void shutdown() {
-        System.out.println("- AbstractService(), shutdown()");
         // if service is not running, then exit
         if (!isRunning()) {
             return;
@@ -784,21 +751,18 @@ public abstract class AbstractService extends AbstractServiceProperties
     // <editor-fold desc="class methods not implemented">
     @Override
     public void checkConnection(AbstractConnection connection) {
-        System.out.println("- AbstractService(), checkConnection(connection)");
         logError(getClass().toString()
                 + ", checkConnection(), base class implementation - needs to be overriden");
     }
 
     @Override
     public void checkConnections() {
-        System.out.println("- AbstractService(), checkConnections()");
         logError(getClass().toString()
                 + ", checkConnections(), base class implementation - needs to be overriden");
     }
 
     @Override
     public void serve(AbstractConnection conn) throws Exception {
-        System.out.println("- AbstractService(), serve(conn)");
         logError(getClass().toString()
                 + ", serve(), base class implementation - needs to be overriden");
     }
@@ -807,7 +771,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     // <editor-fold desc="class event listener">
     public Object notifyFactoryListener(Object sender, IEventStatusType status,
             String message, Object o) {
-        System.out.println("- AbstractService(), notifyFactoryListener(sender, status, message, o)");
         Object result = null;
 
         // if listeners are not setup, then just output to console
@@ -831,7 +794,6 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     @Override
     public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
-        System.out.println("- AbstractService(), EventHandler(sender, status, message, o)");
         Object result = null;
 
         if (sender instanceof ServiceFactory) {
@@ -868,7 +830,6 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     @Override
     public String toString() {
-        System.out.println("- AbstractService(), toString()");
         StringBuilder result = new StringBuilder();
 
         result.append("<object attr='").append(getClass().getName()).append("'>");
@@ -910,7 +871,6 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     @Override
     public void toString(PrintWriter out) {
-        System.out.println("- AbstractService(), toString(out)");
         // retrieve the toString() representation of this object and write
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);
