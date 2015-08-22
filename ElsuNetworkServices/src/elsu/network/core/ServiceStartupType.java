@@ -9,5 +9,6 @@ public enum ServiceStartupType {
     AUTOMATIC,
     DELAYEDSTART,
     DISABLED,
-    MANUAL
+    MANUAL,
+    SYSTEM
 }

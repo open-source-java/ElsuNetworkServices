@@ -107,14 +107,14 @@ public class FileTransferService extends AbstractService implements IService {
 
         try {
             this._connectionTimeout = Integer.parseInt(
-                    getProperty("connection.idleTimeout").toString());
+                    getProperty("connection.idleTimeout").toString()) * 1000;
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
                     + ", invalid connection.idleTimeout, "
                     + ex.getMessage());
-            this._connectionTimeout = 1000;
+            this._connectionTimeout = 5000;
         }
     }
     // </editor-fold>

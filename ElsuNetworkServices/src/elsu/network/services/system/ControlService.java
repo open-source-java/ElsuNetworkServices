@@ -499,20 +499,21 @@ public class ControlService extends AbstractService implements IService {
      */
     public void commandStop(StringTokenizer tokens, PrintWriter out) {
         // as long as there are tokens, process them
+        // remove port port port ...
         while (tokens.hasMoreTokens()) {
             // convert the token to int
             int port;
             port = Integer.parseInt(tokens.nextToken());;
 
-            // ensure port is not of the control service
-            if (port == getServiceConfig().getConnectionPort()) {
+            // ensure port is of the system service
+            IService service = (IService) notifyFactoryListener(this, EventStatusType.statusTypeFor("GETSERVICE"), null, port);
+
+            if ((service != null) && (service.getServiceConfig().getStartupType() == ServiceStartupType.SYSTEM)) {
                 // acknowledge
                 out.print(getStatusUnAuthorized() + ", " + port
                         + getRecordTerminator());
                 out.flush();
-            } else // remove port port port ...
-            //if (getFactory().removeService(port, false)) {
-            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, false})) {
+            } else if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, false})) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -545,12 +546,12 @@ public class ControlService extends AbstractService implements IService {
             PrintWriter out)
             throws Exception {
         // as long as there are tokens, process them
+        // start port port port ...
         while (tokens.hasMoreTokens()) {
             // convert the token to int
             int port;
             port = Integer.parseInt(tokens.nextToken());;
 
-            // remove port port port ...
             //if (getFactory().startService(port)) {
             if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("STARTSERVICE"), null, port)) {
                 // acknowledge

@@ -208,8 +208,8 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
     }
 
     /**
-     * getServiceAbstract(...) returns the service object by searching the
-     * services list by the name of the service.
+     * getService(...) returns the service object by searching the services list
+     * by the name of the service.
      *
      * @param serviceName is the name of the service being searched and is
      * derived from the name property of the connection in the config file.
@@ -241,6 +241,27 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
             // yield processing to other threads
             Thread.yield();
+        }
+
+        return result;
+    }
+
+    /**
+     * getService(...) returns the service object by searching the services list
+     * by the name of the service.
+     *
+     * @param port is the name of the service being searched and is derived from
+     * the name property of the connection in the config file.
+     *
+     * @return  <code>AbstractService</code> object
+     */
+    public IService getService(int port) {
+        IService result = null;
+
+        // do not use iterator as changes to the hashMap can cause exceptions
+        // when modified while looping
+        synchronized (this._runtimeSync) {
+            result = (IService) getServices().get(port);
         }
 
         return result;
@@ -348,8 +369,10 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         // check the service startup type, if Automatic, notify service to 
         // start.  start() is a overloaded method from base service and allows
         // services to perform pre-setup before connections are active
-        if (service.getServiceConfig().getStartupType()
-                == ServiceStartupType.AUTOMATIC) {
+        if ((service.getServiceConfig().getStartupType()
+                == ServiceStartupType.AUTOMATIC)
+                || (service.getServiceConfig().getStartupType()
+                == ServiceStartupType.SYSTEM)) {
             //service.start();
             Object status = notifyListeners(this, EventStatusType.START, null, service);
             if (status instanceof Exception) {
@@ -470,11 +493,10 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @throws Exception
      */
     public void initializeServices() throws Exception {
-        try {
-            ServiceConfig config = null;
-            String serviceName = "";
-            IService service = null;
+        String serviceName = "";
+        IService service = null;
 
+        try {
             // collect the list of all services into array list for processing
             // do not use iterator since control service can change the scope
             // of the iterate and will result in exceptions.
@@ -485,92 +507,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
             for (String spObject : spIterator) {
                 serviceName = spObject.replace(".class", "");
 
-                try {
-                    // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
-                    if (getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
-                            || getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
-                        // ignore this class type
-                    } else {
-                        // extract the service properties for parsing
-                        config = ServiceConfig.LoadConfig(getConfig(), serviceName);
-
-                        // control service is a custom service and there does not use
-                        // reflection but direct instantiation.
-                        if (serviceName.equals("controlService")) {
-                            // is the service disabled, if not create an instance of
-                            // the service
-                            if (config.getStartupType() != ServiceStartupType.DISABLED) {
-                                // log the action
-                                notifyListeners(this, EventStatusType.INFORMATION,
-                                        ".. service activated (" + spObject.toString() + ")",
-                                        config);
-
-                                // create the service instance
-                                service = new ControlService(config);
-
-                                // connect the factory event listeners
-                                ((IEventPublisher) service).addEventListener(this);
-                                addEventListener((IEventSubscriber) service);
-
-                                // add the service to the service list in the factory
-                                addService(service);
-                            }
-                        } else if (config.getStartupType() != ServiceStartupType.DISABLED) {
-                         // service is not control service, so if it is not 
-                            // disabled process the service properties
-
-                            // log the action
-                            notifyListeners(this, EventStatusType.INFORMATION,
-                                    ".. service activated (" + spObject.toString() + ")",
-                                    config);
-
-                            // using reflection, load the class for the service
-                            Class<?> serviceClass = Class.forName(config.getServiceClass());
-
-                            // create service constructor discovery type parameter array
-                            // populate it with the required class types
-                            Class<?>[] argTypes = {String.class, ServiceConfig.class};
-
-                            // retrieve the matching constructor for the service using
-                            // reflection
-                            Constructor<?> cons = serviceClass.getDeclaredConstructor(
-                                    argTypes);
-
-                            // create parameter array and populate it with values to 
-                            // pass to the service constructor
-                            Object[] arguments
-                                    = {config.getServiceClass(), config};
-
-                            // create new instance of the service using the discovered
-                            // constructor and parameters
-                            service = (IService) cons.newInstance(arguments);
-
-                            // connect the factory event listeners
-                            ((IEventPublisher) service).addEventListener(this);
-                            addEventListener((IEventSubscriber) service);
-
-                            // add the service to the service list in the factory
-                            addService(service);
-                        }
-
-                        // yield processing to other threads
-                        Thread.yield();
-                    }
-                } catch (Exception ex) {
-                    // log error if there was any exception in processing during
-                    // reflection or parameter discovery and throw it to allow calling
-                    // function to handle it
-                    logError(getClass().getName() + ", initializeServices(), "
-                            + spObject + " service load error, " + ex.getMessage());
-
-                    if (service != null) {
-                        try {
-                            removeService(service.getServiceConfig().getConnectionPort(), false);
-                        } catch (Exception exi) {
-                        }
-                    }
-                    // throw new Exception(ex.getMessage());
-                }
+                initializeServices(serviceName);
             }
 
             // since all the services which were not disabled were already 
@@ -620,6 +557,145 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
                     + ex.getMessage());
             throw new Exception(ex.getMessage());
         }
+    }
+
+    private void initializeServices(String serviceName) {
+        ServiceConfig config = null;
+        IService service = null;
+
+        try {
+            // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
+            if (getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
+                    || getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
+                // ignore this class type
+            } else {
+                // extract the service properties for parsing
+                config = ServiceConfig.LoadConfig(getConfig(), serviceName);
+
+                // control service is a custom service and there does not use
+                // reflection but direct instantiation.
+                if (serviceName.equals("controlService")) {
+                    // is the service disabled, if not create an instance of
+                    // the service
+                    if (config.getStartupType() != ServiceStartupType.DISABLED) {
+                        // log the action
+                        notifyListeners(this, EventStatusType.INFORMATION,
+                                ".. service activated (" + serviceName + ")",
+                                config);
+
+                        // create the service instance
+                        service = new ControlService(config);
+
+                        // connect the factory event listeners
+                        ((IEventPublisher) service).addEventListener(this);
+                        addEventListener((IEventSubscriber) service);
+
+                        // add the service to the service list in the factory
+                        addService(service);
+                    }
+                } else if (config.getStartupType() != ServiceStartupType.DISABLED) {
+                         // service is not control service, so if it is not 
+                    // disabled process the service properties
+
+                    // log the action
+                    notifyListeners(this, EventStatusType.INFORMATION,
+                            ".. service activated (" + serviceName + ")",
+                            config);
+
+                    // using reflection, load the class for the service
+                    Class<?> serviceClass = Class.forName(config.getServiceClass());
+
+                    // create service constructor discovery type parameter array
+                    // populate it with the required class types
+                    Class<?>[] argTypes = {String.class, ServiceConfig.class};
+
+                    // retrieve the matching constructor for the service using
+                    // reflection
+                    Constructor<?> cons = serviceClass.getDeclaredConstructor(
+                            argTypes);
+
+                    // create parameter array and populate it with values to 
+                    // pass to the service constructor
+                    Object[] arguments
+                            = {config.getServiceClass(), config};
+
+                    // create new instance of the service using the discovered
+                    // constructor and parameters
+                    service = (IService) cons.newInstance(arguments);
+
+                    // connect the factory event listeners
+                    ((IEventPublisher) service).addEventListener(this);
+                    addEventListener((IEventSubscriber) service);
+
+                    // add the service to the service list in the factory
+                    addService(service);
+                }
+
+                // yield processing to other threads
+                Thread.yield();
+            }
+        } catch (Exception ex) {
+            // log error if there was any exception in processing during
+            // reflection or parameter discovery and throw it to allow calling
+            // function to handle it
+            logError(getClass().getName() + ", initializeServices(), "
+                    + serviceName + " service load error, " + ex.getMessage());
+
+            if (service != null) {
+                try {
+                    removeService(service.getServiceConfig().getConnectionPort(), false);
+                } catch (Exception exi) {
+                }
+            }
+        }
+    }
+
+    /**
+     * validateService(...) method is used to check if the configured service is
+     * running or not. If the service is not running and is a system service,
+     * then it will be restarted.
+     *
+     * @param serviceName
+     * @return <code>boolean</code> false if service could not be started, true
+     * if service is running or was restarted
+     */
+    public boolean validateService(String serviceName) throws Exception {
+        boolean result = true;
+        IService service = getService(serviceName);
+
+        // if service is running, exit
+        if (service != null) {
+            result = isRunning(service.getServiceConfig().getConnectionPort());
+            if (!result) {
+                startService(service.getServiceConfig().getConnectionPort());
+            }
+        } else {
+            throw new Exception(getClass().getName() + ", validateService(), "
+                    + serviceName + " is not configured.");
+        }
+
+        return result;
+    }
+
+    public boolean isRunning(int port) {
+        boolean result = false;
+
+        synchronized (this._runtimeSync) {
+            result = ((IService) getServices().get(port)).isRunning();
+        }
+
+        return result;
+    }
+
+    public boolean isRunning(String serviceName) {
+        boolean result = false;
+        IService service = getService(serviceName);
+
+        if (service != null) {
+            result = isRunning(service.getServiceConfig().getConnectionPort());
+        }
+
+        return result;
     }
 
     /**
@@ -778,6 +854,25 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
                         result = toString();
                     }
                     break;
+                case 7016:  // GETSERVICE
+                    result = getService(Integer.valueOf(o.toString()));
+                    break;
+                case 7017:  // VALIDATESERVICE
+                    try {
+                        result = validateService(o.toString());
+                    } catch (Exception ex) {
+                        result = new Exception(getClass().getName() + ", EventHandler(), "
+                                + "validateService failed.");
+                    }
+                    break;
+                case 7018:  // ISSERVICERUNNING
+                    if (o instanceof Integer) {
+                        result = isRunning(Integer.valueOf(o.toString()));
+                    } else {
+                        result = isRunning(o.toString());
+                    }
+                    break;
+
                 default:
                     break;
             }
@@ -785,7 +880,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
 
         return result;
     }
-    // </editor-fold>
+// </editor-fold>
 
     /**
      * toString() method is overridden from default Object toString() to display

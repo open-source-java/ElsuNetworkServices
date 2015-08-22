@@ -40,6 +40,9 @@ public class ServiceStatusType {
             EventStatusType.addStatusType("REMOVESERVICE", 7013);
             EventStatusType.addStatusType("STARTSERVICE", 7014);
             EventStatusType.addStatusType("TOSTRING", 7015);
+            EventStatusType.addStatusType("GETSERVICE", 7016);
+            EventStatusType.addStatusType("VALIDATESERVICE", 7017);
+            EventStatusType.addStatusType("ISSERVICERUNNING", 7018);
         } catch (Exception ex) {
             //logError(getClass().toString()
             //        + ", initializeLocalProperties(), invalid connection.maximum, "
