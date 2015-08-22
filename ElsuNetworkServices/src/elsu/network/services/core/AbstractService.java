@@ -811,6 +811,7 @@ public abstract class AbstractService extends AbstractServiceProperties
                             result = ex;
                         }
                     }
+                    break;
                 case SHUTDOWN:
                     if (this == o) {
                         try {
@@ -819,6 +820,7 @@ public abstract class AbstractService extends AbstractServiceProperties
                             result = ex;
                         }
                     }
+                    break;
                 default:
                     break;
             }
