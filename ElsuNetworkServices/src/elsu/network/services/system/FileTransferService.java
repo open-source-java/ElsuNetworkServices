@@ -80,43 +80,41 @@ public class FileTransferService extends AbstractService implements IService {
         try {
             this._localStoreUseAlways = Boolean.valueOf(
                     getServiceConfig().getAttributes().get(
-                            "service.localStore.useAlways").toString());
+                            "localStore.useAlways").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
-                    + ", invalid service.localStore.useAlways, "
+                    + ", invalid fileTransferService.attributes.localStore.useAlways, "
                     + ex.getMessage());
             this._localStoreUseAlways = true;
         }
 
-        this._localStoreDirectory = getServiceConfig().getAttributes().get(
-                "service.localStore.directory").toString();
+        this._localStoreDirectory = getProperty("localStore.directory").toString();
 
         try {
             this._fileIOBufferSize = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
-                            "service.connection.buffer.size").toString());
+                            "bufferSize").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
-                    + ", invalid service.connection.buffer.size, "
+                    + ", invalid fileTransferService.attributes.bufferSize, "
                     + ex.getMessage());
-            this._fileIOBufferSize = 512;
+            this._fileIOBufferSize = 1024;
         }
 
         try {
             this._connectionTimeout = Integer.parseInt(
-                    getServiceConfig().getAttributes().get(
-                            "service.connection.idle.timeout").toString());
+                    getProperty("connection.idleTimeout").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort()
-                    + ", invalid service.connection.idle.timeout, "
+                    + ", invalid connection.idleTimeout, "
                     + ex.getMessage());
-            this._connectionTimeout = 512;
+            this._connectionTimeout = 1000;
         }
     }
     // </editor-fold>
@@ -162,8 +160,14 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>int</code> value of the buffer size.
      */
-    public synchronized int getFileIOBufferSize() {
-        return this._fileIOBufferSize;
+    public int getFileIOBufferSize() {
+        int result = 0;
+        
+        synchronized (this._runtimeSync) {
+            result = this._fileIOBufferSize;
+        }
+        
+        return result;
     }
 
     /**
@@ -743,7 +747,7 @@ public class FileTransferService extends AbstractService implements IService {
      * @throws java.lang.Exception
      */
     @Override
-    public synchronized void start() throws Exception {
+    public void start() throws Exception {
         // call the super method to perform initialization
         super.start();
     }

@@ -314,7 +314,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * configured as a SERVER service.
      * @throws java.lang.Exception
      */
-    public synchronized void addService(IService service)
+    public void addService(IService service)
             throws Exception {
         // convert to object for comparison in the hashMap
         Integer port = new Integer(service.getServiceConfig().getConnectionPort());
@@ -338,7 +338,9 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         }
 
         // new service, store the service object with port as its key
-        getServices().put(port, service);
+        synchronized (this._runtimeSync) {
+            getServices().put(port, service);
+        }
 
         // set notification to services with factory reference
         notifyListeners(this, EventStatusType.INITIALIZE, null, service);
@@ -375,7 +377,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * the service list (hashMap) and cannot be restarted.
      * @return <code>boolean</code> if the service was successfully removed.
      */
-    public synchronized boolean removeService(int port, boolean delete) {
+    public boolean removeService(int port, boolean delete) {
         // convert to object for comparison in the hashMap
         Integer key = new Integer(port);
 
@@ -395,7 +397,9 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
         // permanently.  This remove the service config and therefore, once
         // removed, the service cannot be restarted.
         if (delete) {
-            getServices().remove(key);
+            synchronized (this._runtimeSync) {
+                getServices().remove(key);
+            }
         }
 
         // log the action
@@ -417,7 +421,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * was already running.
      * @throws java.lang.Exception
      */
-    public synchronized boolean startService(int port)
+    public boolean startService(int port)
             throws Exception {
         // convert to object for comparison in the hashMap
         Integer key = new Integer(port);
@@ -465,7 +469,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @throws Exception
      */
-    public synchronized void initializeServices() throws Exception {
+    public void initializeServices() throws Exception {
         try {
             ServiceConfig config = null;
             String serviceName = "";
@@ -622,7 +626,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * shutdownServiceAbstracts() method is used to allow application to
      * gracefully signal shutdown to all running services.
      */
-    public synchronized void shutdownServices() {
+    public void shutdownServices() {
         // collect the list of all services into array list for processing
         // do not use iterator since control service can change the scope
         // of the iterate and will result in exceptions.
@@ -656,7 +660,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param info is the object whose string representation will be stored in
      * the log file
      */
-    public synchronized void logDebug(Object info) {
+    public void logDebug(Object info) {
         getConfig().logDebug(info.toString());
     }
 
@@ -671,7 +675,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param info is the object whose string representation will be stored in
      * the log file
      */
-    public synchronized void logError(Object info) {
+    public void logError(Object info) {
         getConfig().logError(info.toString());
     }
 
@@ -686,7 +690,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @param info is the object whose string representation will be stored in
      * the log file
      */
-    public synchronized void logInfo(Object info) {
+    public void logInfo(Object info) {
         getConfig().logInfo(info.toString());
     }
     // </editor-fold>
@@ -790,7 +794,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      * @return
      */
     @Override
-    public synchronized String toString() {
+    public String toString() {
         // create string builder to store the results
         StringBuilder result = new StringBuilder();
 
@@ -842,7 +846,7 @@ public class ServiceFactory extends AbstractEventManager implements IEventPublis
      *
      * @param out is the output stream where the data will sent.
      */
-    public synchronized void toString(PrintWriter out) {
+    public void toString(PrintWriter out) {
         // retrieve the toString() representation of this object and write
         // it to the output stream provided
         out.print(toString() + GlobalStack.LINESEPARATOR);

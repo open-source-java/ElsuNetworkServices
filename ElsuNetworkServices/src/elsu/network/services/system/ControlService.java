@@ -83,7 +83,7 @@ public class ControlService extends AbstractService implements IService {
     @Override
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
-        
+
         this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
                 = getProperty("connection.terminator").toString();
@@ -102,11 +102,11 @@ public class ControlService extends AbstractService implements IService {
      */
     private String getConnectionTerminator() {
         String result = "";
-        
+
         synchronized (this._runtimeSync) {
             result = this._connectionTerminator;
         }
-        
+
         return result;
     }
 
@@ -119,11 +119,11 @@ public class ControlService extends AbstractService implements IService {
      */
     private String getPassword() {
         String result = "";
-        
+
         synchronized (this._runtimeSync) {
             result = this._password;
         }
-        
+
         return result;
     }
 
@@ -135,11 +135,11 @@ public class ControlService extends AbstractService implements IService {
      */
     private String getLocalStorage() {
         String result = "";
-        
+
         synchronized (this._runtimeSync) {
             result = this._localStorage;
         }
-        
+
         return result;
     }
 
@@ -151,11 +151,11 @@ public class ControlService extends AbstractService implements IService {
      */
     private String getServiceShutdown() {
         String result = "";
-        
+
         synchronized (this._runtimeSync) {
             result = this._serviceShutdown;
         }
-        
+
         return result;
     }
     // </editor-fold>
@@ -504,7 +504,13 @@ public class ControlService extends AbstractService implements IService {
             int port;
             port = Integer.parseInt(tokens.nextToken());;
 
-            // remove port port port ...
+            // ensure port is not of the control service
+            if (port == getServiceConfig().getConnectionPort()) {
+                // acknowledge
+                out.print(getStatusUnAuthorized() + ", " + port
+                        + getRecordTerminator());
+                out.flush();
+            } else // remove port port port ...
             //if (getFactory().removeService(port, false)) {
             if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, false})) {
                 // acknowledge
@@ -667,7 +673,7 @@ public class ControlService extends AbstractService implements IService {
         IService service = (IService) cons.newInstance(arguments);
 
         // getFactory().addService(service);
-        Exception ex = (Exception)notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
+        Exception ex = (Exception) notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
         if (ex != null) {
             throw ex;
         }

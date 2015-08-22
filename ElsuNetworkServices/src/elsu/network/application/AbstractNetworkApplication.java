@@ -25,6 +25,9 @@ import java.util.Collections.*;
 public abstract class AbstractNetworkApplication {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // storage for factory instance; singleton pattern, only one factory can
     // be running at a time per application
     private volatile ServiceFactory _factory = null;
@@ -56,8 +59,14 @@ public abstract class AbstractNetworkApplication {
      * errors.
      * @see ServiceFactory
      */
-    public synchronized ServiceFactory getFactory() {
-        return this._factory;
+    public ServiceFactory getFactory() {
+        ServiceFactory result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._factory;
+        }
+        
+        return result;
     }
 
     /**
@@ -67,7 +76,7 @@ public abstract class AbstractNetworkApplication {
      * @param factory instance of the ServiceFactory.
      * @see ServiceFactory
      */
-    private synchronized void setFactory(ServiceFactory factory) {
+    private void setFactory(ServiceFactory factory) {
         this._factory = factory;
     }
     // </editor-fold>

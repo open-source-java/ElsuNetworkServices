@@ -69,7 +69,7 @@ public abstract class AbstractServiceRuntimeProperties
         return result;
     }
 
-    public synchronized Date getDate() {
+    public Date getDate() {
         Date result = null;
 
         synchronized (this._runtimeSync) {
