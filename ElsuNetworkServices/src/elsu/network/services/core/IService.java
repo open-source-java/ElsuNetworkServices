@@ -1,11 +1,8 @@
 package elsu.network.services.core;
 
-import elsu.network.services.AbstractConnection;
 import elsu.network.services.*;
-import elsu.network.services.core.*;
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 /**
  * IService interface exports the common functions of the Service class allowing

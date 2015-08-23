@@ -1,7 +1,6 @@
 package elsu.network.services.core;
 
-import elsu.network.core.ServiceType;
-import elsu.network.core.ServiceStartupType;
+import elsu.network.core.*;
 import elsu.support.*;
 import java.util.*;
 

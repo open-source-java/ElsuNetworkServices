@@ -1,6 +1,5 @@
 package elsu.network.services.system;
 
-import elsu.network.services.AbstractConnection;
 import elsu.network.services.core.*;
 import elsu.network.core.*;
 import elsu.network.factory.*;

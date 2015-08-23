@@ -1,17 +1,12 @@
 package elsu.network.services.system;
 
-import elsu.network.services.core.ServiceConfig;
-import elsu.network.services.core.IService;
-import elsu.network.services.AbstractConnection;
-import elsu.network.services.core.AbstractService;
-import elsu.network.factory.ServiceFactory;
+import elsu.network.services.core.*;
 import elsu.network.services.*;
 import elsu.common.*;
 import elsu.io.*;
 import java.io.*;
 import java.util.regex.*;
 import java.security.*;
-import java.util.Map;
 import org.apache.commons.codec.binary.*;
 
 public class FileTransferService extends AbstractService implements IService {

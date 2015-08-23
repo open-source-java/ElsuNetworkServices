@@ -1,14 +1,8 @@
 package elsu.network.services.system;
 
-import elsu.events.EventStatusType;
-import elsu.network.services.core.ServiceConfig;
-import elsu.network.services.core.IService;
-import elsu.network.services.AbstractConnection;
-import elsu.network.services.core.AbstractService;
-import elsu.network.factory.ServiceFactory;
+import elsu.events.*;
+import elsu.network.services.core.*;
 import elsu.network.services.*;
-import java.io.*;
-import java.util.Map;
 
 public class WatcherService extends AbstractService
         implements IService {

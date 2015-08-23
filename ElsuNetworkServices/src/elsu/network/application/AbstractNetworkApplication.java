@@ -1,8 +1,6 @@
 package elsu.network.application;
 
-import elsu.network.factory.ServiceFactory;
-import java.io.*;
-import java.util.Collections.*;
+import elsu.network.factory.*;
 
 /**
  * AbstractNetworkApplication is the main class which is used to instantiate user
