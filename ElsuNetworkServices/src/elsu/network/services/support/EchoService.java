@@ -1,7 +1,7 @@
 package elsu.network.services.support;
 
+import elsu.network.services.core.*;
 import elsu.network.services.*;
-import elsu.network.service.factory.*;
 import java.io.*;
 
 /**
@@ -11,6 +11,9 @@ import java.io.*;
 public class EchoService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -19,12 +22,12 @@ public class EchoService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public EchoService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
+    public EchoService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, threadGroup, serviceConfig);
+        super(threadGroup, serviceConfig);
 
-        initializeLocalProperties();
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**
@@ -33,12 +36,13 @@ public class EchoService extends AbstractService implements IService {
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getApplicationProperties().get(
-                "service.shutdown").toString();
+    @Override
+    protected void initializeLocalProperties() {
+        super.initializeLocalProperties();
+
+        this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getApplicationProperties().get(
-                        "connection.terminator").toString();
+                = getProperty("connection.terminator").toString();
     }
     // </editor-fold>
 
@@ -49,8 +53,14 @@ public class EchoService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -59,8 +69,14 @@ public class EchoService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+    private String getServiceShutdown() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
