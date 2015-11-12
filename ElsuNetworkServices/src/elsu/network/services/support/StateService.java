@@ -1,7 +1,7 @@
 package elsu.network.services.support;
 
+import elsu.network.services.core.*;
 import elsu.network.services.*;
-import elsu.network.service.factory.*;
 import java.io.*;
 import java.security.*;
 import java.math.*;
@@ -13,6 +13,9 @@ import java.math.*;
 public class StateService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -27,12 +30,12 @@ public class StateService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public StateService(ServiceFactory factory, String threadGroup,
-            ServiceConfig serviceConfig) {
+    public StateService(String threadGroup, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(factory, threadGroup, serviceConfig);
+        super(threadGroup, serviceConfig);
 
-        initializeLocalProperties();
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**
@@ -41,12 +44,13 @@ public class StateService extends AbstractService implements IService {
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getApplicationProperties().get(
-                "service.shutdown").toString();
+    @Override
+    protected void initializeLocalProperties() {
+        super.initializeLocalProperties();
+
+        this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getApplicationProperties().get(
-                        "connection.terminator").toString();
+                = getProperty("connection.terminator").toString();
     }
     // </editor-fold>
 
@@ -57,8 +61,14 @@ public class StateService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -67,8 +77,14 @@ public class StateService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+    private String getServiceShutdown() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
 
     /**
@@ -77,8 +93,14 @@ public class StateService extends AbstractService implements IService {
      *
      * @return <code>int</code> value
      */
-    private synchronized int getNextId() {
-        return StateService.id++;
+    private int getNextId() {
+        int result = 0;
+        
+        synchronized (this._runtimeSync) {
+            result = StateService.id++;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
@@ -92,29 +114,26 @@ public class StateService extends AbstractService implements IService {
      * and provides a way to create a shared counter and (2) random generated 32
      * byte string to create a global GUID.
      *
-     * @param iStream
-     * @param oStream
+     * @param conn
      * @throws Exception
      */
     @Override
-    public void serve(InputStream iStream, OutputStream oStream) throws
-            Exception {
-        // create bufferred reader reference for the input stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        BufferedReader in = null;
+    public void serve(AbstractConnection conn) throws Exception {
+        // local parameter for reader thread access, passes the connection 
+        // object
+        final Connection cConn = (Connection) conn;
 
-        // create print writer reference for the output stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        PrintWriter out = null;
+        // local parameter for reader thread access, passes the socket in stream
+        final BufferedReader in = new BufferedReader(new InputStreamReader(
+                cConn.getClient().getInputStream()));
+
+        // local parameter for reader thread access, passes the socket out 
+        // stream
+        final PrintWriter out = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(cConn.getClient().getOutputStream())));
 
         // this is to prevent socket to stay open after error
         try {
-            in = new BufferedReader(new InputStreamReader(iStream));
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
-                    oStream)));
-
             // increase the total # of incomming messages
             increaseTotalMessagesReceived();
 
@@ -129,7 +148,7 @@ public class StateService extends AbstractService implements IService {
 
             // increase the total # of incomming messages
             increaseTotalMessagesSent();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // log error for tracking
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -138,33 +157,23 @@ public class StateService extends AbstractService implements IService {
         } finally {
             // close out all open in/out streams.
             try {
+                try {
+                    out.flush();
+                } catch (Exception exi) {
+                }
                 out.close();
-            } catch (Exception exi){
+            } catch (Exception exi) {
             }
             try {
                 in.close();
-            } catch (Exception exi){
+            } catch (Exception exi) {
             }
         }
-    }
-
-    /**
-     * serve(...) method is the optional method of the service which processes
-     * the client connection which can be not socket based.
-     * <p>
-     * Not used for this service, Not supported exception is thrown if executed.
-     *
-     * @param conn
-     * @throws Exception
-     */
-    @Override
-    public void serve(AbstractServiceConnection conn) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     // </editor-fold>
 
     @Override
-    public void checkConnection(AbstractServiceConnection connection) {
+    public void checkConnection(AbstractConnection connection) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

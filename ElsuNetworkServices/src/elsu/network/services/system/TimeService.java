@@ -1,14 +1,15 @@
-package elsu.network.services.support;
+package elsu.network.services.system;
 
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
+import java.util.*;
 
 /**
  *
  * @author Seraj Dhaliwal (seraj.s.dhaliwal@uscg.mil)
  */
-public class EchoService extends AbstractService implements IService {
+public class TimeService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
     // runtime sync object
@@ -22,11 +23,10 @@ public class EchoService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public EchoService(String threadGroup, ServiceConfig serviceConfig) {
-        // call the super class constructor
+    public TimeService(String threadGroup, ServiceConfig serviceConfig) {
         super(threadGroup, serviceConfig);
-
-        // local config properties for local reference by class method
+        
+        // call the super class constructor
         // initializeLocalProperties();
     }
 
@@ -39,7 +39,7 @@ public class EchoService extends AbstractService implements IService {
     @Override
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
-
+        
         this._serviceShutdown = getProperty("service.shutdown").toString();
         this._connectionTerminator
                 = getProperty("connection.terminator").toString();
@@ -86,9 +86,9 @@ public class EchoService extends AbstractService implements IService {
      * client socket using the streams (in/out). The method is shared by all
      * client sockets.
      * <p>
-     * This method returns the string sent by the client by simply echoing it
-     * back to the client. It is a good test to ensure the remove machine is
-     * operations - like ping.
+     * This method returns the current system time at the local system the
+     * service is running and servicing clients. The service disconnects the
+     * connection after sending the time string.
      *
      * @param conn
      * @throws Exception
@@ -110,32 +110,16 @@ public class EchoService extends AbstractService implements IService {
 
         // this is to prevent socket to stay open after error
         try {
-            // this is the main processing loop, client sends commands, which
-            // are parsed, executed, and result returned to the client
-            for (;;) {
-                // read the client data from the socket
-                String line = in.readLine();
+            // increase the total # of incomming messages
+            increaseTotalMessagesReceived();
 
-                // if the input is null or the value matches connection 
-                // terminator then disconnect the client
-                if ((line == null) || line.equals(getConnectionTerminator())) {
-                    break;
-                }
+            // send the date/time from the local application to the client
+            out.print(new Date() + getRecordTerminator());
+            out.flush();
 
-                // increase the total # of incomming messages
-                increaseTotalMessagesReceived();
-
-                // send the incomming data back to the client (echo)
-                out.print(line + getRecordTerminator());
-                out.flush();
-
-                // increase the total # of sent messages
-                increaseTotalMessagesSent();
-
-                // yield processing to other threads
-                Thread.yield();
-            }
-        } catch (Exception ex) {
+            // increase the total # of sent messages
+            increaseTotalMessagesSent();
+        } catch (Exception ex){
             // log error for tracking
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -149,11 +133,11 @@ public class EchoService extends AbstractService implements IService {
                 } catch (Exception exi) {
                 }
                 out.close();
-            } catch (Exception exi) {
+            } catch (Exception exi){
             }
             try {
                 in.close();
-            } catch (Exception exi) {
+            } catch (Exception exi){
             }
         }
     }

@@ -12,6 +12,7 @@
 hs_err_pid*
 
 # local compiler properties
+<<<<<<< HEAD
 nbproject/private/
 build/
 nbbuild/
@@ -19,3 +20,7 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+=======
+build/
+dist/
+>>>>>>> 11c3d94ef2b40851629917ae7180b5eb10810844
