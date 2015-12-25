@@ -1,6 +1,7 @@
 package elsu.network.services.system;
 
 import elsu.events.*;
+import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 
@@ -25,9 +26,10 @@ public class WatcherService extends AbstractService
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public WatcherService(String threadGroup, ServiceConfig serviceConfig) {
+    public WatcherService(String threadGroup, ServiceManager serviceManager, 
+            ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(threadGroup, serviceConfig);
+        super(threadGroup, serviceManager, serviceConfig);
 
         // local config properties for local reference by class method
         // initializeLocalProperties();
@@ -167,7 +169,7 @@ public class WatcherService extends AbstractService
         try {
             // array of watched ports
             String[] services = getWatchList().split(",");
-            Object result = null;
+            boolean result = false;
 
             // loop as long as the service is running, since there is no 
             // connection, this is service threaded method
@@ -180,10 +182,11 @@ public class WatcherService extends AbstractService
                 // - if service exists, but is not running then issue start
                 // - if service is not present, then create it
                 for (String serviceName : services) {
-                    result = notifyFactoryListener(this, EventStatusType.statusTypeFor("VALIDATESERVICE"), null, serviceName);
+                    result = getServiceManager().validateService(serviceName);
 
-                    if (result instanceof Exception) {
-                        logError(getClass().toString() + ", serve(), " + ((Exception) result).getMessage());
+                    if (!result) {
+                        logError(getClass().toString() + ", serve(), service (" + 
+                                serviceName + ") could not started.");
                     }
                 }
             }

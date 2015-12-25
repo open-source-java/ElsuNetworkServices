@@ -19,9 +19,9 @@ public class ElsuNetworkServicesUnitTest extends AbstractNetworkApplication {
             dgpsedl.run(args);
         } catch (Exception ex){
             // Display a message if anything goes wrong
-            System.err.println("ElsuSiteSimulator, main, " + ex.getMessage());
+            System.err.println("ElsuNetworkServicesUnitTest, main, " + ex.getMessage());
             System.err.println(
-                    "application.main, Usage: java -jar ElsuSiteSimulator.jar "
+                    "application.main, Usage: java -jar ElsuNetworkServicesUnitTest.jar "
                     + "[config/app.config] [/disabled]");
             System.exit(1);
         }

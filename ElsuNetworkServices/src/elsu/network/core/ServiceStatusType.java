@@ -38,6 +38,8 @@ public class ServiceStatusType {
             EventStatusType.addStatusType("GETSERVICE", 7016);
             EventStatusType.addStatusType("VALIDATESERVICE", 7017);
             EventStatusType.addStatusType("ISSERVICERUNNING", 7018);
+            EventStatusType.addStatusType("GETFACTORYOBJECT", 7019);
+            EventStatusType.addStatusType("CREATELOG", 7020);
         } catch (Exception ex) {
             //logError(getClass().toString()
             //        + ", initializeLocalProperties(), invalid connection.maximum, "

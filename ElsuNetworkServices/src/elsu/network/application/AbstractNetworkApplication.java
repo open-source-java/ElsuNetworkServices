@@ -28,7 +28,7 @@ public abstract class AbstractNetworkApplication {
 
     // storage for factory instance; singleton pattern, only one factory can
     // be running at a time per application
-    private volatile ServiceFactory _factory = null;
+    private volatile ServiceManager _svcManager = null;
     // </editor-fold>
 
     // <editor-fold desc="class inline">
@@ -57,11 +57,11 @@ public abstract class AbstractNetworkApplication {
      * errors.
      * @see ServiceFactory
      */
-    public ServiceFactory getFactory() {
-        ServiceFactory result = null;
+    public ServiceManager getServiceManager() {
+        ServiceManager result = null;
         
         synchronized (this._runtimeSync) {
-            result = this._factory;
+            result = this._svcManager;
         }
         
         return result;
@@ -74,15 +74,15 @@ public abstract class AbstractNetworkApplication {
      * @param factory instance of the ServiceFactory.
      * @see ServiceFactory
      */
-    private void setFactory(ServiceFactory factory) {
-        this._factory = factory;
+    private void setServiceManager(ServiceManager manager) {
+        this._svcManager = manager;
     }
     // </editor-fold>
 
     // <editor-fold desc="class methods">
     /**
-     * run() is entry point for the MessageProcesor to try to instantiate the
-     * ServiceFactory with default or user defined configuration.
+     * run() is entry point for the AbstractApplication to try to instantiate the
+     * ServiceManager with default or user defined configuration.
      * <p>
      * Since there is no configuration loaded, the errors are displayed to the
      * default system error stream. If there is error during execution, the
@@ -93,6 +93,7 @@ public abstract class AbstractNetworkApplication {
      * external to the config packaged within the jar file
      *
      * @param args
+     * @see ServiceManager
      * @see ServiceFactory
      * @see ConfigLoader
      */
@@ -104,17 +105,17 @@ public abstract class AbstractNetworkApplication {
             // if user as provided command line arguments, parse them
             if (args.length > 0) {
                 // instantiate factory with provided config
-                setFactory(new ServiceFactory(args[0]));
+                setServiceManager(new ServiceManager(args[0]));
             } else {
                 // create ServiceFactory and store it in class variable.  since 
                 // logging is not yet configured, ServiceFactory, uses System.out
                 // to display any notifications.
-                setFactory(new ServiceFactory());
+                setServiceManager(new ServiceManager());
             }
 
             // allow the ServiceFactory to initialize services stored in the
             // default app.config or user specified custom config
-            getFactory().initializeServices();
+            getServiceManager().run();
         } catch (Exception ex) {
             System.err.println("getClass().toString(), run(), "
                     + ex.getMessage());

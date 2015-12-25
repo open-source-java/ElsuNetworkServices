@@ -4,7 +4,9 @@ import elsu.events.*;
 import elsu.network.core.*;
 import elsu.network.factory.*;
 import elsu.common.*;
+import elsu.network.application.*;
 import elsu.network.services.*;
+import elsu.support.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -37,6 +39,8 @@ public abstract class AbstractService extends AbstractServiceProperties
     private volatile boolean _isListener = false;
     // reference to listener object for the service
     private volatile ServiceListener _listener = null;
+    // system logger if configured
+    private volatile Log4JManager _log4JManager = null;
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
@@ -57,9 +61,10 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @see AbstractServiceProperties
      * @see ServiceRuntimeProperties
      */
-    public AbstractService(String threadGroup, ServiceConfig serviceConfig) {
+    public AbstractService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(serviceConfig);
+        super(serviceManager, serviceConfig);
 
         // store the thread group for use by other objects
         setThreadGroup(new ThreadGroup(threadGroup));
@@ -69,6 +74,7 @@ public abstract class AbstractService extends AbstractServiceProperties
 
         // local config properties for local reference by class method
         // initializeLocalProperties();
+        // initialize logger if serviceConfig defines log.filename
     }
 
     /**
@@ -80,14 +86,14 @@ public abstract class AbstractService extends AbstractServiceProperties
     protected void initializeLocalProperties() {
         // initialize shared/global service properties 
         setDateTimeFormat(getProperty("message.datetimeFormat").toString());
-        setFieldDelimiter(getProperties().get("record.field.delimiter").toString());
-        setRecordTerminator(getProperties().get("record.terminator").toString());
-        setStatusOk(getProperties().get("connection.status.ok").toString());
-        setStatusInvalidContent(getProperties().get("connection.status.invalidContent").toString());
-        setStatusUnAuthorized(getProperties().get("connection.status.unauthorized").toString());
-        setStatusRequestTimeout(getProperties().get("connection.status.requestTimeout").toString());
-        setStatusDatabaseError(getProperties().get("connection.status.databaseError").toString());
-        setStatusSystemError(getProperties().get("connection.status.systemError").toString());
+        setFieldDelimiter(getProperty("record.field.delimiter").toString());
+        setRecordTerminator(getProperty("record.terminator").toString());
+        setStatusOk(getProperty("connection.status.ok").toString());
+        setStatusInvalidContent(getProperty("connection.status.invalidContent").toString());
+        setStatusUnAuthorized(getProperty("connection.status.unauthorized").toString());
+        setStatusRequestTimeout(getProperty("connection.status.requestTimeout").toString());
+        setStatusDatabaseError(getProperty("connection.status.databaseError").toString());
+        setStatusSystemError(getProperty("connection.status.systemError").toString());
 
         // initialize local service properties
         if (getServiceConfig().getServiceType() == ServiceType.SERVER) {
@@ -110,6 +116,15 @@ public abstract class AbstractService extends AbstractServiceProperties
                 this._isListener = false;
             }
         }
+
+        // initialize log for the service
+        try {
+            this._log4JManager = ConfigLoader.initializeLogger(ConfigLoader._LOGCLASSPROPERTY,
+                    this.getClass().getName());
+        } catch (Exception ex) {
+            getServiceManager().logError(getClass().toString() + ", initializeLocalProperties(), "
+                    + ex.getMessage());
+        }
     }
 
     /**
@@ -131,45 +146,35 @@ public abstract class AbstractService extends AbstractServiceProperties
 
     // <editor-fold desc="class factory getter/setters">
     public int getMaximumConnections() {
-        return Integer.valueOf(notifyFactoryListener(this, EventStatusType.statusTypeFor("GETMAXIMUMCONNECTIONS"), null, null).toString());
+        return getServiceManager().getMaximumConnections();
     }
 
     public void setMaximumConnections(int count) {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("SETMAXIMUMCONNECTIONS"), null, count);
+        getServiceManager().setMaximumConnections(count);
     }
 
     public int getServiceConnections() {
-        return Integer.valueOf(notifyFactoryListener(this, EventStatusType.statusTypeFor("GETSERVICECONNECTIONS"), null, null).toString());
+        return getServiceManager().getServiceConnections();
     }
 
     public Object getProperty(String key) {
-        return notifyFactoryListener(this, EventStatusType.statusTypeFor("GETPROPERTY"), null, key).toString();
+        return getServiceManager().getProperty(key);
     }
 
     public Map<String, Object> getProperties() {
-        Object result = notifyFactoryListener(this, EventStatusType.statusTypeFor("GETPROPERTIES"), null, null);
-
-        // typesafe return toensure to protect from runtime error 
-        if ((result != null) && (result instanceof Map)) {
-            return (Map<String, Object>) result;
-        } else {
-            return null;
-        }
+        return getServiceManager().getProperties();
     }
 
     public void addService(IService service) throws Exception {
-        Exception ex = (Exception) notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
-        if (ex != null) {
-            throw ex;
-        }
+        getServiceManager().addService(service);
     }
 
     public void decreaseServiceConnections() {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("DECREASESERVICECONNECTIONS"), null, null);
+        getServiceManager().decreaseServiceConnections();
     }
 
     public void increaseServiceConnections() {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("INCREASESERVICECONNECTIONS"), null, null);
+        getServiceManager().increaseServiceConnections();
     }
 
     /**
@@ -179,7 +184,13 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logDebug(Object obj) {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGDEBUG"), obj.toString(), null);
+        if (_log4JManager != null) {
+            synchronized (this._runtimeSync) {
+                _log4JManager.debug(obj.toString());
+            }
+        } else {
+            getServiceManager().logDebug(obj.toString());
+        }
     }
 
     /**
@@ -189,7 +200,13 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logError(Object obj) {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGERROR"), obj.toString(), null);
+        if (_log4JManager != null) {
+            synchronized (this._runtimeSync) {
+                _log4JManager.error(obj.toString());
+            }
+        } else {
+            getServiceManager().logError(obj.toString());
+        }
     }
 
     /**
@@ -199,7 +216,13 @@ public abstract class AbstractService extends AbstractServiceProperties
      * @param obj
      */
     public void logInfo(Object obj) {
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("LOGINFO"), obj.toString(), null);
+        if (_log4JManager != null) {
+            synchronized (this._runtimeSync) {
+                _log4JManager.info(obj.toString());
+            }
+        } else {
+            getServiceManager().logInfo(obj.toString());
+        }
     }
 
     // </editor-fold>
@@ -768,29 +791,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     // </editor-fold>
 
     // <editor-fold desc="class event listener">
-    public Object notifyFactoryListener(Object sender, IEventStatusType status,
-            String message, Object o) {
-        Object result = null;
-
-        // if listeners are not setup, then just output to console
-        if (getEventListeners().size() == 0) {
-            System.out.println(status.getName() + ":" + message);
-        } else {
-            for (IEventSubscriber sub : getEventListeners()) {
-                if (sub instanceof ServiceFactory) {
-                    try {
-                        result = sub.EventHandler(sender, status, message, o);
-                    } catch (Exception ex) {
-                        System.out.println(getClass().toString() + ", notifyListeners(), "
-                                + ex.getMessage());
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
     @Override
     public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
         Object result = null;

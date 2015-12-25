@@ -5,6 +5,7 @@ import elsu.network.core.*;
 import elsu.network.factory.*;
 import elsu.common.*;
 import elsu.events.*;
+import elsu.network.application.*;
 import elsu.network.services.*;
 import elsu.support.*;
 import java.io.*;
@@ -65,9 +66,9 @@ public class ControlService extends AbstractService implements IService {
      * @see ServiceRuntimeProperties
      *
      */
-    public ControlService(ServiceConfig serviceConfig) {
+    public ControlService(ServiceManager serviceManager, ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(null, serviceConfig);
+        super(null, serviceManager, serviceConfig);
 
         // local config properties for local reference by class method
         // initializeLocalProperties();
@@ -315,7 +316,7 @@ public class ControlService extends AbstractService implements IService {
             StringTokenizer tokens,
             PrintWriter out) throws Exception {
         // get config from factory for local use
-        ConfigLoader config = (ConfigLoader) notifyFactoryListener(this, EventStatusType.statusTypeFor("GETCONFIG"), null, null);
+        ConfigLoader config = getServiceManager().getConfig();
 
         // local list to track the services which were created through this
         // method and copies the existing properties of the service configurations
@@ -466,8 +467,7 @@ public class ControlService extends AbstractService implements IService {
             int port = Integer.parseInt(tokens.nextToken());
 
             // remove port port port ...
-            // if(getFactory().removeService(port, true)) {
-            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, true})) {
+            if (getServiceManager().removeService(port, true)) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -505,14 +505,14 @@ public class ControlService extends AbstractService implements IService {
             port = Integer.parseInt(tokens.nextToken());;
 
             // ensure port is of the system service
-            IService service = (IService) notifyFactoryListener(this, EventStatusType.statusTypeFor("GETSERVICE"), null, port);
+            IService service = getServiceManager().getService(port);
 
             if ((service != null) && (service.getServiceConfig().getStartupType() == ServiceStartupType.SYSTEM)) {
                 // acknowledge
                 out.print(getStatusUnAuthorized() + ", " + port
                         + getRecordTerminator());
                 out.flush();
-            } else if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("REMOVESERVICE"), null, new Object[]{port, false})) {
+            } else if (getServiceManager().removeService(port, false)) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -551,8 +551,7 @@ public class ControlService extends AbstractService implements IService {
             int port;
             port = Integer.parseInt(tokens.nextToken());;
 
-            //if (getFactory().startService(port)) {
-            if ((boolean) notifyFactoryListener(this, EventStatusType.statusTypeFor("STARTSERVICE"), null, port)) {
+            if (getServiceManager().startService(port)) {
                 // acknowledge
                 out.print(getStatusOk() + ", " + port + getRecordTerminator());
                 out.flush();
@@ -602,8 +601,7 @@ public class ControlService extends AbstractService implements IService {
     public void commandStatus(StringTokenizer tokens,
             PrintWriter out) {
         // display status of the service
-        //getFactory().toString(out);
-        notifyFactoryListener(this, EventStatusType.statusTypeFor("TOSTRING"), null, out);
+        getServiceManager().toString(out);
 
         // return status back to the client
         out.print(getStatusOk() + getRecordTerminator());
@@ -664,19 +662,15 @@ public class ControlService extends AbstractService implements IService {
         Class<?> serviceClass = Class.forName(config.getServiceClass());
 
         //service = (IService) serviceClass.newInstance();
-        Class<?>[] argTypes = {ServiceFactory.class, String.class,
+        Class<?>[] argTypes = {String.class, ServiceManager.class,
             ServiceConfig.class};
 
         Constructor<?> cons = serviceClass.getDeclaredConstructor(argTypes);
 
-        Object[] arguments = {config.getServiceClass(), config};
+        Object[] arguments = {config.getServiceClass(), getServiceManager(), config};
         IService service = (IService) cons.newInstance(arguments);
 
-        // getFactory().addService(service);
-        Exception ex = (Exception) notifyFactoryListener(this, EventStatusType.statusTypeFor("ADDSERVICE"), null, service);
-        if (ex != null) {
-            throw ex;
-        }
+        getServiceManager().addService(service);
         return service;
     }
 

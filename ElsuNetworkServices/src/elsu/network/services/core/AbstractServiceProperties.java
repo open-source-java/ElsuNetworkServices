@@ -2,6 +2,7 @@ package elsu.network.services.core;
 
 import elsu.network.services.*;
 import elsu.common.*;
+import elsu.network.application.*;
 import java.util.*;
 
 /**
@@ -30,6 +31,7 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
     //private volatile ServiceFactory _factory = null;
 
     // service configuration object created from app.config properties.
+    private volatile ServiceManager _serviceManager = null;
     private volatile ServiceConfig _serviceConfig = null;
 
     // set/list of client connections active for the service
@@ -66,8 +68,10 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
      * @param factory is the factory which created the service
      * @param serviceConfig is the configuration object loaded from app.config
      */
-    public AbstractServiceProperties(ServiceConfig serviceConfig) {
+    public AbstractServiceProperties(ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
         // store the service configuration
+        this._serviceManager = serviceManager;
         this._serviceConfig = serviceConfig;
 
         // create a set for storing connections
@@ -161,6 +165,16 @@ public abstract class AbstractServiceProperties extends AbstractServiceRuntimePr
         
         synchronized(this._runtimeSync) {
             result = this._serviceConfig;
+        }
+        
+        return result;
+    }
+
+    public ServiceManager getServiceManager() {
+        ServiceManager result = null;
+        
+        synchronized(this._runtimeSync) {
+            result = this._serviceManager;
         }
         
         return result;

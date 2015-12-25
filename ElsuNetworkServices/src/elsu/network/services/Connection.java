@@ -57,6 +57,9 @@ public class Connection extends AbstractConnection {
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
+    public Object getProperty(String key) {
+        return getProperties().get(key);
+    }
     /**
      * getProperties() method returns the collection of connection properties
      * managed by the connection. These are local key/value entries stored by
