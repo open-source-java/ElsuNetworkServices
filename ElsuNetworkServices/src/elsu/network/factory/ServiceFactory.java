@@ -120,6 +120,8 @@ public abstract class ServiceFactory {
 
         try {
             // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
+            if (serviceManager.getConfig().getProperty(serviceName + ".serviceType") == null) {
+            } else
             if (serviceManager.getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
                     || serviceManager.getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
                 // ignore this class type
@@ -134,7 +136,7 @@ public abstract class ServiceFactory {
                     // the service
                     if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {
                         // log the action
-                        serviceManager.logInfo(".. service activated (" + serviceName + ")");
+                        serviceManager.logInfo(".. service loaded (" + serviceName + ")");
 
                         // create the service instance
                         service = new ControlService(serviceManager, serviceConfig);
@@ -151,7 +153,7 @@ public abstract class ServiceFactory {
                     // disabled process the service properties
 
                     // log the action
-                    serviceManager.logInfo(".. service activated (" + serviceName + ")");
+                    serviceManager.logInfo(".. service loaded (" + serviceName + ")");
 
                     // using reflection, load the class for the service
                     Class<?> serviceClass = Class.forName(serviceConfig.getServiceClass());

@@ -119,7 +119,7 @@ public abstract class AbstractService extends AbstractServiceProperties
 
         // initialize log for the service
         try {
-            this._log4JManager = ConfigLoader.initializeLogger(ConfigLoader._LOGCLASSPROPERTY,
+            this._log4JManager = ConfigLoader.initializeLogger("",
                     this.getClass().getName());
         } catch (Exception ex) {
             getServiceManager().logError(getClass().toString() + ", initializeLocalProperties(), "
@@ -795,7 +795,7 @@ public abstract class AbstractService extends AbstractServiceProperties
     public Object EventHandler(Object sender, IEventStatusType status, String message, Object o) {
         Object result = null;
 
-        if (sender instanceof ServiceFactory) {
+        if (sender instanceof ServiceManager) {
             switch (EventStatusType.valueOf(status.getName())) {
                 case INITIALIZE:
                     if (this == o) {
