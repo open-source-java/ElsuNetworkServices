@@ -1,5 +1,6 @@
 package elsu.network.services.system;
 
+import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 
@@ -25,9 +26,10 @@ public class GarbageCollectionService extends AbstractService
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public GarbageCollectionService(String threadGroup, ServiceConfig serviceConfig) {
+    public GarbageCollectionService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(threadGroup, serviceConfig);
+        super(threadGroup, serviceManager, serviceConfig);
 
         // local config properties for local reference by class method
         // initializeLocalProperties();

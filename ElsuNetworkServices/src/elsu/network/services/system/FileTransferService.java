@@ -4,6 +4,7 @@ import elsu.network.services.core.*;
 import elsu.network.services.*;
 import elsu.common.*;
 import elsu.io.*;
+import elsu.network.application.*;
 import java.io.*;
 import java.util.regex.*;
 import java.security.*;
@@ -50,10 +51,10 @@ public class FileTransferService extends AbstractService implements IService {
      * @see ServiceConnectionBasic
      * @see ServiceConnectionCustom
      */
-    public FileTransferService(String threadGroup, ServiceConfig serviceConfig) {
+    public FileTransferService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(threadGroup, serviceConfig);
-
+        super(threadGroup, serviceManager, serviceConfig);
         // local config properties for local reference by class method
         // initializeLocalProperties();
     }

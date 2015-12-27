@@ -1,5 +1,6 @@
 package elsu.network.services.test;
 
+import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
@@ -22,8 +23,10 @@ public class ReverseService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public ReverseService(String threadGroup, ServiceConfig serviceConfig) {
-        super(threadGroup, serviceConfig);
+    public ReverseService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
+        // call the super class constructor
+        super(threadGroup, serviceManager, serviceConfig);
 
         // local config properties for local reference by class method
         // initializeLocalProperties();

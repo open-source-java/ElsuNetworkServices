@@ -1,5 +1,6 @@
 package elsu.network.services.system;
 
+import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
@@ -23,8 +24,10 @@ public class TimeService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public TimeService(String threadGroup, ServiceConfig serviceConfig) {
-        super(threadGroup, serviceConfig);
+    public TimeService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
+        // call the super class constructor
+        super(threadGroup, serviceManager, serviceConfig);
         
         // call the super class constructor
         // initializeLocalProperties();

@@ -1,5 +1,6 @@
 package elsu.network.services.support;
 
+import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
@@ -30,9 +31,10 @@ public class StateService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public StateService(String threadGroup, ServiceConfig serviceConfig) {
+    public StateService(String threadGroup, ServiceManager serviceManager,
+            ServiceConfig serviceConfig) {
         // call the super class constructor
-        super(threadGroup, serviceConfig);
+        super(threadGroup, serviceManager, serviceConfig);
 
         // local config properties for local reference by class method
         // initializeLocalProperties();
