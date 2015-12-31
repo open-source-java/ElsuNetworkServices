@@ -9,7 +9,7 @@ import elsu.support.*;
 import java.io.*;
 import java.util.*;
 
-public class AbstractServiceManager extends AbstractEventManager implements IEventPublisher, IEventSubscriber{
+public class AbstractServiceManager extends AbstractEventManager implements IEventPublisher, IEventSubscriber {
 
     // <editor-fold desc="class private storage">
     // runtime sync object
@@ -50,8 +50,23 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
         initializeLocalProperties();
     }
 
+    public AbstractServiceManager(ConfigLoader config) throws Exception {
+        setConfig(config);
+
+        // load configuration properties
+        initializeLocalProperties();
+    }
+
     public AbstractServiceManager(String config, String[] suppresspath) throws Exception {
-        setConfig(config, suppresspath);
+        setConfig(config, null, suppresspath);
+
+        // load configuration properties
+        initializeLocalProperties();
+    }
+
+    public AbstractServiceManager(String config, String[] filterPath, String[] suppresspath) 
+            throws Exception {
+        setConfig(config, filterPath, suppresspath);
 
         // load configuration properties
         initializeLocalProperties();
@@ -94,28 +109,20 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
         return result;
     }
 
-    private void setConfig() {
-        try {
-            this._config = new ConfigLoader("", null);
-        } catch (Exception ex) {
-
-        }
+    private void setConfig() throws Exception {
+        this._config = new ConfigLoader("", null);
     }
 
-    private void setConfig(String config) {
-        try {
-            this._config = new ConfigLoader(config, null);
-        } catch (Exception ex) {
-
-        }
+    private void setConfig(String config) throws Exception {
+        this._config = new ConfigLoader(config, null);
+    }
+    private void setConfig(ConfigLoader config) throws Exception {
+        this._config = config;
     }
 
-    private void setConfig(String config, String[] suppressPath) {
-        try {
-            this._config = new ConfigLoader(config, suppressPath);
-        } catch (Exception ex) {
-
-        }
+    private void setConfig(String config, String[] filterPath, String[] suppressPath)
+            throws Exception {
+        this._config = new ConfigLoader(config, filterPath, suppressPath);
     }
 
     /**

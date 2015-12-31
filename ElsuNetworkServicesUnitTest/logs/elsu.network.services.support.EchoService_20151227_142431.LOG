@@ -1,3 +1,0 @@
-[unitTestLogger] [27 Dec 2015 - 02:24:31]  INFO - class elsu.network.services.support.EchoService, start(), echoService listener activated (7100) 
-[unitTestLogger] [27 Dec 2015 - 02:24:31]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.support.EchoService on port 7100 
-[unitTestLogger] [27 Dec 2015 - 02:24:31]  INFO - .. service loaded (reverseService) 

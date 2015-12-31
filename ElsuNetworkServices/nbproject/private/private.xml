@@ -11,14 +11,6 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/application/AbstractNetworkApplication.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/ControlService.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/WatcherService.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/core/AbstractServiceProperties.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/core/AbstractService.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/factory/ServiceFactory.java</file>
-            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/application/ServiceManager.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
