@@ -45,14 +45,14 @@ public class GarbageCollectionService extends AbstractService
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
 
         try {
             this._gcDelay = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
-                            "timer").toString()) * 1000;
+                            "key.timer").toString()) * 1000;
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -185,6 +185,11 @@ public class GarbageCollectionService extends AbstractService
     public void start() throws Exception {
         super.start();
 
+        checkConnections();
+    }
+    
+    @Override
+    public void validateService() throws Exception {
         checkConnections();
     }
     // </editor-fold>

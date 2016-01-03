@@ -46,4 +46,6 @@ public interface IService {
     void serve(AbstractConnection conn) throws Exception;
 
     void toString(PrintWriter out);
+    
+    void validateService() throws Exception;
 }

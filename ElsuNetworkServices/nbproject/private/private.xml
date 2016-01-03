@@ -11,6 +11,20 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/ControlService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/application/AbstractServiceManager.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/core/AbstractService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/factory/ServiceFactory.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/GarbageCollectionService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/TimeService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/config/app.config</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/core/ServiceConfig.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/support/EchoService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/WatcherService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/system/FileTransferService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/support/StateService.java</file>
+            <file>file:/home/development/GitHub/ElsuNetworkServices/ElsuNetworkServices/src/elsu/network/services/test/ReverseService.java</file>
+        </group>
     </open-files>
 </project-private>

@@ -69,14 +69,14 @@ public class FileTransferService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
 
         try {
             this._localStoreUseAlways = Boolean.valueOf(
                     getServiceConfig().getAttributes().get(
-                            "localStore.useAlways").toString());
+                            "key.localStore.useAlways").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -86,12 +86,12 @@ public class FileTransferService extends AbstractService implements IService {
             this._localStoreUseAlways = true;
         }
 
-        this._localStoreDirectory = getProperty("localStore.directory").toString();
+        this._localStoreDirectory = getProperty("application.framework.attributes.key.localStore.directory").toString();
 
         try {
             this._fileIOBufferSize = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
-                            "bufferSize").toString());
+                            "key.bufferSize").toString());
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -103,7 +103,7 @@ public class FileTransferService extends AbstractService implements IService {
 
         try {
             this._connectionTimeout = Integer.parseInt(
-                    getProperty("connection.idleTimeout").toString()) * 1000;
+                    getProperty("application.framework.attributes.key.connection.idleTimeout").toString()) * 1000;
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -734,18 +734,6 @@ public class FileTransferService extends AbstractService implements IService {
             } catch (Exception exi) {
             }
         }
-    }
-
-    /**
-     * start() method overloaded from the super class is used to instantiate
-     * child services.
-     *
-     * @throws java.lang.Exception
-     */
-    @Override
-    public void start() throws Exception {
-        // call the super method to perform initialization
-        super.start();
     }
     // </editor-fold>
 

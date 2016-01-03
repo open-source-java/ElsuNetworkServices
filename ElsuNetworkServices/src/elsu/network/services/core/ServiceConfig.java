@@ -412,7 +412,7 @@ public class ServiceConfig {
         }
 
         // copy the original objects attributes to new object
-        for (String attrKey : config.getProperties().keySet()) {
+        for (String attrKey : config.getKeySet()) {
             if (attrKey.startsWith(serviceName + ".attributes.")) {
                 sc.getAttributes().put(attrKey.replace(serviceName + ".attributes.", ""),
                         config.getProperty(attrKey).toString());

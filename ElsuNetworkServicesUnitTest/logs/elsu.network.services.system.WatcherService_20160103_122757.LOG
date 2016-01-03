@@ -1,0 +1,3 @@
+[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - class elsu.network.services.system.WatcherService, addConnection(),  for service application.services.service.watcherService 
+[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.system.WatcherService on port 7001 
+[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - .. service loaded (application.services.service.reverseService) 

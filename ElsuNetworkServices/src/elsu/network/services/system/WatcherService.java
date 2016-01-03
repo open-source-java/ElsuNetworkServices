@@ -26,7 +26,7 @@ public class WatcherService extends AbstractService
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public WatcherService(String threadGroup, ServiceManager serviceManager, 
+    public WatcherService(String threadGroup, ServiceManager serviceManager,
             ServiceConfig serviceConfig) {
         // call the super class constructor
         super(threadGroup, serviceManager, serviceConfig);
@@ -45,14 +45,14 @@ public class WatcherService extends AbstractService
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
 
         try {
             this._scanPeriod = Integer.parseInt(
                     getServiceConfig().getAttributes().get(
-                            "scanPeriod").toString()) * 1000;
+                            "key.scanPeriod").toString()) * 1000;
         } catch (Exception ex) {
             logError(getClass().toString() + ", initializeLocalProperties(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -62,7 +62,7 @@ public class WatcherService extends AbstractService
             this._scanPeriod = 15000;
         }
 
-        this._watchList = getServiceConfig().getAttribute("watchList");
+        this._watchList = getServiceConfig().getAttribute("key.watchList");
     }
     // </editor-fold>
 
@@ -185,8 +185,8 @@ public class WatcherService extends AbstractService
                     result = getServiceManager().validateService(serviceName);
 
                     if (!result) {
-                        logError(getClass().toString() + ", serve(), service (" + 
-                                serviceName + ") could not started.");
+                        logError(getClass().toString() + ", serve(), service ("
+                                + serviceName + ") could not started.");
                     }
                 }
             }
@@ -216,6 +216,11 @@ public class WatcherService extends AbstractService
     public void start() throws Exception {
         super.start();
 
+        checkConnections();
+    }
+
+    @Override
+    public void validateService() throws Exception {
         checkConnections();
     }
     // </editor-fold>

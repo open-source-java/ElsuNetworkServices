@@ -50,9 +50,9 @@ public class StateService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
     }
     // </editor-fold>
 

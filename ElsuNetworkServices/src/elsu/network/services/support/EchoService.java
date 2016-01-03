@@ -42,9 +42,9 @@ public class EchoService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
     }
     // </editor-fold>
 
@@ -139,6 +139,7 @@ public class EchoService extends AbstractService implements IService {
             }
         } catch (Exception ex) {
             // log error for tracking
+            isRunning(false);
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort() + ", "

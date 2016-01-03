@@ -1,0 +1,4 @@
+[unitTestLogger] [03 Jan 2016 - 12:08:23]  INFO - class elsu.network.services.support.StateService, start(), application.services.service.stateService listener activated (7101) 
+[unitTestLogger] [03 Jan 2016 - 12:08:23]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.support.StateService on port 7101 
+[unitTestLogger] [03 Jan 2016 - 12:08:46] ERROR - class elsu.network.services.system.WatcherService, serve(), application.services.service.watcherService on port 7001, elsu.network.application.ServiceManager, validateService(), controlService is not configured. 
+[unitTestLogger] [03 Jan 2016 - 12:08:46]  INFO - class elsu.network.services.system.WatcherService, removeConnection(), connection to class elsu.network.services.Connection, Connection:application.services.service.watcherService removed 

@@ -85,15 +85,15 @@ public abstract class AbstractService extends AbstractServiceProperties
      */
     protected void initializeLocalProperties() {
         // initialize shared/global service properties 
-        setDateTimeFormat(getProperty("message.datetimeFormat").toString());
-        setFieldDelimiter(getProperty("record.field.delimiter").toString());
-        setRecordTerminator(getProperty("record.terminator").toString());
-        setStatusOk(getProperty("connection.status.ok").toString());
-        setStatusInvalidContent(getProperty("connection.status.invalidContent").toString());
-        setStatusUnAuthorized(getProperty("connection.status.unauthorized").toString());
-        setStatusRequestTimeout(getProperty("connection.status.requestTimeout").toString());
-        setStatusDatabaseError(getProperty("connection.status.databaseError").toString());
-        setStatusSystemError(getProperty("connection.status.systemError").toString());
+        setDateTimeFormat(getProperty("application.framework.attributes.key.message.datetimeFormat").toString());
+        setFieldDelimiter(getProperty("application.framework.attributes.key.record.field.delimiter").toString());
+        setRecordTerminator(getProperty("application.framework.attributes.key.record.terminator").toString());
+        setStatusOk(getProperty("application.framework.attributes.key.connection.status.ok").toString());
+        setStatusInvalidContent(getProperty("application.framework.attributes.key.connection.status.invalidContent").toString());
+        setStatusUnAuthorized(getProperty("application.framework.attributes.key.connection.status.unauthorized").toString());
+        setStatusRequestTimeout(getProperty("application.framework.attributes.key.connection.status.requestTimeout").toString());
+        setStatusDatabaseError(getProperty("application.framework.attributes.key.connection.status.databaseError").toString());
+        setStatusSystemError(getProperty("application.framework.attributes.key.connection.status.systemError").toString());
 
         // initialize local service properties
         if (getServiceConfig().getServiceType() == ServiceType.SERVER) {
@@ -103,7 +103,7 @@ public abstract class AbstractService extends AbstractServiceProperties
                 try {
                     this._isListener = Boolean.valueOf(
                             getServiceConfig().getAttributes().get(
-                                    "service.listener").toString());
+                                    "key.service.listener").toString());
                 } catch (Exception ex) {
                     logError(getClass().toString()
                             + ", initializeLocalProperties(), "
@@ -161,8 +161,8 @@ public abstract class AbstractService extends AbstractServiceProperties
         return getServiceManager().getProperty(key);
     }
 
-    public Map<String, Object> getProperties() {
-        return getServiceManager().getProperties();
+    public Set<String> getKeySet() {
+        return getServiceManager().getKeySet();
     }
 
     public void addService(IService service) throws Exception {
@@ -787,6 +787,11 @@ public abstract class AbstractService extends AbstractServiceProperties
     public void serve(AbstractConnection conn) throws Exception {
         logError(getClass().toString()
                 + ", serve(), base class implementation - needs to be overriden");
+    }
+
+    @Override
+    public void validateService() throws Exception {
+        // mostly do nothing, this is service specific
     }
     // </editor-fold>
 

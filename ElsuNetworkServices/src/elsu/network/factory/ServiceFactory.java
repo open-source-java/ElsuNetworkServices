@@ -131,7 +131,7 @@ public abstract class ServiceFactory {
 
                 // control service is a custom service and there does not use
                 // reflection but direct instantiation.
-                if (serviceName.equals("controlService")) {
+                if (serviceName.equals("application.services.service.controlService")) {
                     // is the service disabled, if not create an instance of
                     // the service
                     if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {

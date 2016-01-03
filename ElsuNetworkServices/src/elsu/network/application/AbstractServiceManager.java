@@ -57,16 +57,9 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
         initializeLocalProperties();
     }
 
-    public AbstractServiceManager(String config, String[] suppresspath) throws Exception {
-        setConfig(config, null, suppresspath);
-
-        // load configuration properties
-        initializeLocalProperties();
-    }
-
-    public AbstractServiceManager(String config, String[] filterPath, String[] suppresspath) 
+    public AbstractServiceManager(String config, String[] filterPath)
             throws Exception {
-        setConfig(config, filterPath, suppresspath);
+        setConfig(config, filterPath);
 
         // load configuration properties
         initializeLocalProperties();
@@ -82,11 +75,9 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
         // update the service status types, this is a throw away initialization
         // since the class initializer calls static method to update enum 
         // properties for Events
-        ServiceStatusType sst = new ServiceStatusType();
-
         try {
             this._maximumConnections = Integer.parseInt(
-                    getConfig().getProperty("connection.maximum").toString());
+                    getConfig().getProperty("application.framework.attributes.key.connection.maximum").toString());
         } catch (Exception ex) {
             this._maximumConnections = 10;
             logError(getClass().toString()
@@ -116,13 +107,14 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
     private void setConfig(String config) throws Exception {
         this._config = new ConfigLoader(config, null);
     }
+
     private void setConfig(ConfigLoader config) throws Exception {
         this._config = config;
     }
 
-    private void setConfig(String config, String[] filterPath, String[] suppressPath)
+    private void setConfig(String config, String[] filterPath)
             throws Exception {
-        this._config = new ConfigLoader(config, filterPath, suppressPath);
+        this._config = new ConfigLoader(config, filterPath);
     }
 
     /**
@@ -143,16 +135,16 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
     }
 
     /**
-     * getProperties() returns the hashmap <String, Object> which is the main
-     * storage for all the global properties.
+     * getKeySet() returns the Set <String> which is the main storage for all
+     * the global properties.
      *
-     * @return <code>Map<String, Object></code> with the global properties
+     * @return <code>Set<String></code> with the global properties
      */
-    public Map<String, Object> getProperties() {
-        Map<String, Object> result = null;
+    public Set<String> getKeySet() {
+        Set<String> result = null;
 
         synchronized (this._runtimeSync) {
-            result = getConfig().getProperties();
+            result = getConfig().getKeySet();
         }
 
         return result;
@@ -469,23 +461,8 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
      * if service is running or was restarted
      */
     public boolean validateService(String serviceName) throws Exception {
-        boolean result = true;
         IService service = getService(serviceName);
-
-        // if service is running, exit
-        if (service != null) {
-            result = isRunning(service.getServiceConfig().getConnectionPort());
-
-            if (!result) {
-                startService(service.getServiceConfig().getConnectionPort());
-                result = isRunning(service.getServiceConfig().getConnectionPort());
-            }
-        } else {
-            throw new Exception(getClass().getName() + ", validateService(), "
-                    + serviceName + " is not configured.");
-        }
-
-        return result;
+        return validateService(service);
     }
 
     /**
@@ -498,21 +475,30 @@ public class AbstractServiceManager extends AbstractEventManager implements IEve
      * if service is running or was restarted
      */
     public boolean validateService(int port) throws Exception {
-        boolean result = true;
         IService service = getService(port);
+        return validateService(service);
+    }
+
+    private boolean validateService(IService service) throws Exception {
+        boolean result = true;
 
         // if service is running, exit
         if (service != null) {
             result = isRunning(service.getServiceConfig().getConnectionPort());
             if (!result) {
                 startService(service.getServiceConfig().getConnectionPort());
+            } else {
+                service.validateService();
             }
         } else {
             throw new Exception(getClass().getName() + ", validateService(), "
-                    + port + " is not configured.");
+                    + service.getServiceConfig().getServiceName()
+                    + "@" + service.getServiceConfig().getConnectionPort()
+                    + " is not configured.");
         }
 
         return result;
+
     }
 
     public boolean isRunning(int port) {

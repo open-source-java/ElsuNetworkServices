@@ -1,0 +1,2 @@
+[unitTestLogger] [03 Jan 2016 - 12:08:18] ERROR - class elsu.network.services.system.FileTransferService, initializeLocalProperties(), application.services.service.fileTransferService on port 7005, invalid connection.idleTimeout, null 
+[unitTestLogger] [03 Jan 2016 - 12:08:18]  INFO - .. service loaded (application.services.service.stateService) 

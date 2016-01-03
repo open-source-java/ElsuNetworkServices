@@ -84,12 +84,11 @@ public class ControlService extends AbstractService implements IService {
     protected void initializeLocalProperties() {
         super.initializeLocalProperties();
 
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
-        this._password = getServiceConfig().getAttributes().get(
-                "password").toString();
-        this._localStorage = getProperty("localStore.directory").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
+        this._password = getServiceConfig().getAttributes().get("key.password").toString();
+        this._localStorage = getProperty("application.framework.attributes.key.localStore.directory").toString();
     }
     // </editor-fold>
 
