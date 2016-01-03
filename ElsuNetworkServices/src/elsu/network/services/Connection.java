@@ -58,7 +58,7 @@ public class Connection extends AbstractConnection {
 
     // <editor-fold desc="class getter/setters">
     public Object getProperty(String key) {
-        return getProperties().get(key);
+        return this._properties.get(key);
     }
     /**
      * getProperties() method returns the collection of connection properties
@@ -69,11 +69,11 @@ public class Connection extends AbstractConnection {
      * @return <code>Map<String, Object></code> key/value pair of all properties
      * the connection defined locally
      */
-    public Map<String, Object> getProperties() {
-        Map<String, Object> result = null;
+    public Set<String> getKeySet() {
+        Set<String> result = null;
         
         synchronized (this._runtimeSync) {
-            result = this._properties;
+            result = this._properties.keySet();
         }
         
         return result;

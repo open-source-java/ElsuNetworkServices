@@ -284,11 +284,11 @@ public class ControlService extends AbstractService implements IService {
         String lStore = getLocalStorage();
         new File(lStore).mkdirs();
 
-        String fName = lStore + FileStack.tempFile(8, ".xml");
+        String fName = lStore + FileUtils.tempFile(8, ".xml");
 
         // save the package data to xml file; igore XML in the front
         String data = config.substring(8);
-        FileStack.writeFile(fName, data, true);
+        FileUtils.writeFile(fName, data, true);
 
         // load the saved file
         commandAddXMLFile(fName, out);

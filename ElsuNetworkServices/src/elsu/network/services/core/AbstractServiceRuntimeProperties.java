@@ -256,10 +256,10 @@ public abstract class AbstractServiceRuntimeProperties
         result.append("<totalMessgesReceived>").append(getTotalMessagesReceived()).append("</totalMessgesReceived>");
         result.append("<totalMessgesSent>").append(getTotalMessagesSent()).append("</totalMessgesSent>");
         result.append("<totalMessagesErrored>").append(getTotalMessagesErrored()).append("</totalMessagesErrored>");
-        result.append("<date>").append(DateStack.convertDate2String(getDate(), ConfigLoader.getDTGFormat())).append("</date>");
-        result.append("<lastActionDate>").append(DateStack.convertDate2String(getLastActionDate(), ConfigLoader.getDTGFormat())).append("</lastActionDate>");
-        result.append("<receiveDate>").append(DateStack.convertDate2String(getReceiveDate(), ConfigLoader.getDTGFormat())).append("</receiveDate>");
-        result.append("<sentDate>").append(DateStack.convertDate2String(getSentDate(), ConfigLoader.getDTGFormat())).append("</sentDate>");
+        result.append("<date>").append(DateUtils.convertDate2String(getDate(), ConfigLoader.getDTGFormat())).append("</date>");
+        result.append("<lastActionDate>").append(DateUtils.convertDate2String(getLastActionDate(), ConfigLoader.getDTGFormat())).append("</lastActionDate>");
+        result.append("<receiveDate>").append(DateUtils.convertDate2String(getReceiveDate(), ConfigLoader.getDTGFormat())).append("</receiveDate>");
+        result.append("<sentDate>").append(DateUtils.convertDate2String(getSentDate(), ConfigLoader.getDTGFormat())).append("</sentDate>");
         result.append("<running>").append(isRunning()).append("</running>");
         result.append("<sequenceId>").append(getSequenceId()).append("</sequenceId>");
         result.append("</object>");
