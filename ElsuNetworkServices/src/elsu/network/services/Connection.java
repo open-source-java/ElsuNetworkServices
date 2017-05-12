@@ -57,18 +57,14 @@ public class Connection extends AbstractConnection {
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
+    public Object addProperty(String key, Object value) {
+        return this._properties.put(key, value);
+    }
+
     public Object getProperty(String key) {
         return this._properties.get(key);
     }
-    /**
-     * getProperties() method returns the collection of connection properties
-     * managed by the connection. These are local key/value entries stored by
-     * the connection to provide fast access vice having to access service
-     * config or application config for every access.
-     *
-     * @return <code>Map<String, Object></code> key/value pair of all properties
-     * the connection defined locally
-     */
+
     public Set<String> getKeySet() {
         Set<String> result = null;
         
