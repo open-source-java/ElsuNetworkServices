@@ -119,8 +119,10 @@ public abstract class AbstractService extends AbstractServiceProperties
 
         // initialize log for the service
         try {
-            this._log4JManager = ConfigLoader.initializeLogger("",
-                    this.getClass().getName());
+        	String logPath = getProperty("application.framework.attributes.key.log.path").toString();
+        	String logClass = getProperty("application.framework.attributes.key.log.class").toString();
+        	String logFile = getProperty("application.framework.attributes.key.log.filename").toString();
+            this._log4JManager = ConfigLoader.initializeLogger(logPath, logClass, logFile);
         } catch (Exception ex) {
             getServiceManager().logError(getClass().toString() + ", initializeLocalProperties(), "
                     + ex.getMessage());

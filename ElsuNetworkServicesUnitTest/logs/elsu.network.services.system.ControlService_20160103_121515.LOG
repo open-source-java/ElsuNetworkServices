@@ -1,3 +1,0 @@
-[unitTestLogger] [03 Jan 2016 - 12:15:15]  INFO - class elsu.network.services.system.ControlService, start(), application.services.service.controlService listener activated (7000) 
-[unitTestLogger] [03 Jan 2016 - 12:15:15]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.system.ControlService on port 7000 
-[unitTestLogger] [03 Jan 2016 - 12:15:15]  INFO - .. service loaded (application.services.service.garbageCollectionService) 

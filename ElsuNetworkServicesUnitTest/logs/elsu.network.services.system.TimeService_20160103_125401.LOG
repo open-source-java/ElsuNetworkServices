@@ -1,3 +1,0 @@
-[unitTestLogger] [03 Jan 2016 - 12:54:01]  INFO - class elsu.network.services.system.TimeService, start(), application.services.service.timeService listener activated (7006) 
-[unitTestLogger] [03 Jan 2016 - 12:54:01]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.system.TimeService on port 7006 
-[unitTestLogger] [03 Jan 2016 - 12:54:01]  INFO - .. service loaded (application.services.service.stateService) 

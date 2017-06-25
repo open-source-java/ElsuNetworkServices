@@ -1,4 +1,0 @@
-[unitTestLogger] [03 Jan 2016 - 12:15:15]  INFO - class elsu.network.services.support.StateService, start(), application.services.service.stateService listener activated (7101) 
-[unitTestLogger] [03 Jan 2016 - 12:15:15]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.support.StateService on port 7101 
-[unitTestLogger] [03 Jan 2016 - 12:17:41] ERROR - class elsu.network.services.Connection, run(), application.services.service.garbageCollectionService, null 
-[unitTestLogger] [03 Jan 2016 - 12:17:41]  INFO - class elsu.network.services.system.GarbageCollectionService, removeConnection(), connection to class elsu.network.services.Connection, Connection:application.services.service.garbageCollectionService removed 

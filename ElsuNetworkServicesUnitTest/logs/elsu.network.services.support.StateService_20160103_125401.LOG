@@ -1,2 +1,0 @@
-[unitTestLogger] [03 Jan 2016 - 12:54:01]  INFO - class elsu.network.services.support.StateService, start(), application.services.service.stateService listener activated (7101) 
-[unitTestLogger] [03 Jan 2016 - 12:54:01]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.support.StateService on port 7101 

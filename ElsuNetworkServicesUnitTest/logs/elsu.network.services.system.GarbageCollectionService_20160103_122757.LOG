@@ -1,3 +1,0 @@
-[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - class elsu.network.services.system.GarbageCollectionService, addConnection(),  for service application.services.service.garbageCollectionService 
-[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - class elsu.network.application.ServiceManager, addService(), starting service elsu.network.services.system.GarbageCollectionService on port 7004 
-[unitTestLogger] [03 Jan 2016 - 12:27:57]  INFO - .. service loaded (application.services.service.watcherService) 
