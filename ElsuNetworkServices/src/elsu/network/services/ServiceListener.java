@@ -1,5 +1,6 @@
 package elsu.network.services;
 
+import elsu.network.services.core.*;
 import java.io.*;
 import java.net.*;
 
@@ -24,6 +25,8 @@ import java.net.*;
 public class ServiceListener extends Thread {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
     // storage for the listener socket
     private volatile ServerSocket _listen_socket = null;
     // socket port which the listener is monitoring
@@ -121,8 +124,14 @@ public class ServiceListener extends Thread {
      *
      * @return <code>ServerSocket</code> is the listener socket
      */
-    public synchronized ServerSocket getListener() {
-        return this._listen_socket;
+    public ServerSocket getListener() {
+        ServerSocket result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._listen_socket;
+        }
+        
+        return result;
     }
 
     /**
@@ -131,8 +140,14 @@ public class ServiceListener extends Thread {
      *
      * @return <code>int</code> is the value of the port.
      */
-    public synchronized int getPort() {
-        return this._port;
+    public int getPort() {
+        int result = 0;
+        
+        synchronized (this._runtimeSync) {
+            result = this._port;
+        }
+        
+        return result;
     }
 
     /**
@@ -142,15 +157,23 @@ public class ServiceListener extends Thread {
      *
      * @return <code>boolean</code> is the current state of the listener
      */
-    public synchronized boolean isActive() {
+    public boolean isActive() {
+        boolean result = false;
+        
         // check if the listener socket is closed, it yes, then override
         // the status and set it to false, this is direct access otherwise
         // calling the setter will result in loop
         if (getListener().isClosed()) {
-            this._isActive = false;
+            synchronized (this._runtimeSync) {
+                this._isActive = false;
+            }
         }
 
-        return this._isActive;
+        synchronized (this._runtimeSync) {
+            result = this._isActive;
+        }
+        
+        return result;
     }
 
     /**
@@ -162,9 +185,11 @@ public class ServiceListener extends Thread {
      * @return <code>boolean</code> is the current state of the listener
      *
      */
-    private synchronized boolean isActive(boolean running) {
+    private boolean isActive(boolean running) {
         // set the status to the user option
-        this._isActive = running;
+        synchronized (this._runtimeSync) {
+            this._isActive = running;
+        }
 
         // return the value of the current state; note, the default getter
         // dose validation of the listener status
@@ -176,8 +201,14 @@ public class ServiceListener extends Thread {
      *
      * @return <code>IService</code> is the service object
      */
-    public synchronized IService getService() {
-        return this._service;
+    public IService getService() {
+        IService result = null;
+        
+        synchronized (this._runtimeSync) {
+            result = this._service;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
@@ -189,7 +220,7 @@ public class ServiceListener extends Thread {
      * to false.
      *
      */
-    protected synchronized void shutdown() {
+    public void shutdown() {
         // update the status to false so the listener will not acivate itself
         this.isActive(false);
 
@@ -199,7 +230,9 @@ public class ServiceListener extends Thread {
         // force close on the listener, exception is captured, logged, and 
         // ignored
         try {
-            getListener().close();
+            synchronized (this._runtimeSync) {
+                getListener().close();
+            }
         } catch (Exception ex){
             getService().logError(getClass().toString() + ", shutdown(), "
                     + getService().getServiceConfig().getServiceName() + ", "
