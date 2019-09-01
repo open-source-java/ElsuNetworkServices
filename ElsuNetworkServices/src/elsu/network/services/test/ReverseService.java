@@ -1,7 +1,8 @@
 package elsu.network.services.test;
 
+import elsu.network.application.*;
+import elsu.network.services.core.*;
 import elsu.network.services.*;
-import elsu.network.service.factory.*;
 import java.io.*;
 
 /**
@@ -11,6 +12,9 @@ import java.io.*;
 public class ReverseService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
+    // runtime sync object
+    private Object _runtimeSync = new Object();
+
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -19,12 +23,13 @@ public class ReverseService extends AbstractService implements IService {
     // </editor-fold>
 
     // <editor-fold desc="class constructor destructor">
-    public ReverseService(ServiceFactory factory, String threadGroup,
+    public ReverseService(String threadGroup, ServiceManager serviceManager,
             ServiceConfig serviceConfig) {
-        super(factory, threadGroup, serviceConfig);
-
         // call the super class constructor
-        initializeLocalProperties();
+        super(threadGroup, serviceManager, serviceConfig);
+
+        // local config properties for local reference by class method
+        // initializeLocalProperties();
     }
 
     /**
@@ -33,12 +38,13 @@ public class ReverseService extends AbstractService implements IService {
      * variables to be reset from another method within a class if required.
      *
      */
-    private void initializeLocalProperties() {
-        this._serviceShutdown = getFactory().getApplicationProperties().get(
-                "service.shutdown").toString();
+    @Override
+    protected void initializeLocalProperties() {
+        super.initializeLocalProperties();
+
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getFactory().getApplicationProperties().get(
-                        "connection.terminator").toString();
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
     }
     // </editor-fold>
 
@@ -49,8 +55,14 @@ public class ReverseService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private synchronized String getConnectionTerminator() {
-        return this._connectionTerminator;
+    private String getConnectionTerminator() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._connectionTerminator;
+        }
+        
+        return result;
     }
 
     /**
@@ -59,8 +71,14 @@ public class ReverseService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+    private String getServiceShutdown() {
+        String result = "";
+        
+        synchronized (this._runtimeSync) {
+            result = this._serviceShutdown;
+        }
+        
+        return result;
     }
     // </editor-fold>
 
@@ -70,33 +88,29 @@ public class ReverseService extends AbstractService implements IService {
      * client socket using the streams (in/out). The method is shared by all
      * client sockets.
      * <p>
-     * This method returns the string sent by the client by reversing and
-     * echoing it back to the client. It was designed to simulate a working load
-     * where CPU performs the work and then returns the data back.
+     * This method returns the reverse of the string passed. The service
+     * disconnects the connection after sending the updated string.
      *
-     * @param iStream
-     * @param oStream
+     * @param conn
      * @throws Exception
      */
     @Override
-    public void serve(InputStream iStream, OutputStream oStream) throws
-            Exception {
-        // create bufferred reader reference for the input stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        BufferedReader in = null;
+    public void serve(AbstractConnection conn) throws Exception {
+        // local parameter for reader thread access, passes the connection 
+        // object
+        final Connection cConn = (Connection) conn;
 
-        // create print writer reference for the output stream. the 
-        // reference is created outside the try...catch (Exception ex)the
-        // finally to perform cleanup correctly
-        PrintWriter out = null;
+        // local parameter for reader thread access, passes the socket in stream
+        final BufferedReader in = new BufferedReader(new InputStreamReader(
+                cConn.getClient().getInputStream()));
+
+        // local parameter for reader thread access, passes the socket out 
+        // stream
+        final PrintWriter out = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(cConn.getClient().getOutputStream())));
 
         // this is to prevent socket to stay open after error
         try {
-            in = new BufferedReader(new InputStreamReader(iStream));
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
-                    oStream)));
-
             // this is the main processing loop, client sends commands, which
             // are parsed, executed, and result returned to the client
             for (;;) {
@@ -130,7 +144,7 @@ public class ReverseService extends AbstractService implements IService {
                 // yield processing to other threads
                 Thread.yield();
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             // log error for tracking
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
@@ -139,33 +153,23 @@ public class ReverseService extends AbstractService implements IService {
         } finally {
             // close out all open in/out streams.
             try {
+                try {
+                    out.flush();
+                } catch (Exception exi) {
+                }
                 out.close();
-            } catch (Exception exi){
+            } catch (Exception exi) {
             }
             try {
                 in.close();
-            } catch (Exception exi){
+            } catch (Exception exi) {
             }
         }
-    }
-
-    /**
-     * serve(...) method is the optional method of the service which processes
-     * the client connection which can be not socket based.
-     * <p>
-     * Not used for this service, Not supported exception is thrown if executed.
-     *
-     * @param conn
-     * @throws Exception
-     */
-    @Override
-    public void serve(AbstractServiceConnection conn) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     // </editor-fold>
 
     @Override
-    public void checkConnection(AbstractServiceConnection connection) {
+    public void checkConnection(AbstractConnection connection) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
