@@ -326,7 +326,7 @@ public class ControlService extends AbstractService implements IService {
         for (String spObject : spIterator) {
             // convert the object as config item
             ServiceConfig configObject;
-            configObject = ServiceConfig.LoadConfig(config, spObject);
+            configObject = ServiceConfig.LoadConfig(config, spObject.replace(".class", ""));
 
             // if the service startup is not configured as disabled, process it
             if (configObject.getStartupType() != ServiceStartupType.DISABLED) {
@@ -668,6 +668,10 @@ public class ControlService extends AbstractService implements IService {
 
         Object[] arguments = {config.getServiceClass(), getServiceManager(), config};
         IService service = (IService) cons.newInstance(arguments);
+
+        // connect the factory event listeners
+        ((IEventPublisher) service).addEventListener(getServiceManager());
+        getServiceManager().addEventListener((IEventSubscriber) service);
 
         getServiceManager().addService(service);
         return service;

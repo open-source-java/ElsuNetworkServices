@@ -139,7 +139,6 @@ public class EchoService extends AbstractService implements IService {
             }
         } catch (Exception ex) {
             // log error for tracking
-            isRunning(false);
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
                     + getServiceConfig().getConnectionPort() + ", "
