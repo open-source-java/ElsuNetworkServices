@@ -14,9 +14,7 @@ import site.core.*;
 /**
  * BcsMessagePublisherServiceAbstract class is implemented as a child service to
  * support delivery of data collected by the subscriber service and to the
- * storage service. There are two different types of publishers: ALARM and
- * MESSAGE. ALARM publisher processes ALM files and MESSAGE publisher publishes
- * MSG files. For each type of publisher there are two processing types: LIVE or
+ * storage service. For each type of publisher there are two processing types: LIVE or
  * RECOVERY. LIVE publisher processes files which are current (match the current
  * datehour) and RECOVERY publisher processes files which are older than the
  * current datehour not exceeding the recovery retention time.
@@ -57,9 +55,6 @@ public class SiteMessagePublisherService extends AbstractService implements
     // service specific data, stores the list of all hosts the publisher can
     // deliver to, app.confg (service.connection.hostUri.?)
     private volatile List<String> _hostUriList = new ArrayList<>();
-    // service specific data, stores the publisher type for the service and 
-    // connection to use when processing the data.
-    private volatile PublisherType _publisherType = PublisherType.ALARM;
     // service specific data, stores the idle timeout used when connection to
     // a host is not available
     private volatile int _idleTimeout = 5000;
@@ -108,16 +103,9 @@ public class SiteMessagePublisherService extends AbstractService implements
      */
     @Override
     protected void initializeLocalProperties() {
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
-
-        if (getChildConfig().getAttribute("service.publisher.type").toString().equals(
-                "ALARM")) {
-            this._publisherType = PublisherType.ALARM;
-        } else {
-            this._publisherType = PublisherType.MESSAGE;
-        }
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
 
         if (getChildConfig().getAttribute("service.processing.mode").toString().equals(
                 "LIVE")) {
@@ -292,24 +280,6 @@ public class SiteMessagePublisherService extends AbstractService implements
     }
 
     /**
-     * setFileTypeMap() method sets the file MAP property based on the publisher
-     * type (ALARM or MESSAGE).
-     */
-    private synchronized void setFileTypeMap() {
-        setFileTypeMap(getPublisherType().name().toString());
-    }
-
-    /**
-     * setFileTypeMap(...) method sets the file MAP property based on the string
-     * variable passed (ALARM = ALM else MSG).
-     *
-     * @param typeMap
-     */
-    public synchronized void setFileTypeMap(String typeMap) {
-        this._fileTypeMap = (typeMap.equals("ALARM") ? "ALM" : "MSG");
-    }
-
-    /**
      * getHostCount() method returns the count of host uri's defined in the
      * app.config which need to loaded and processed.
      *
@@ -351,16 +321,6 @@ public class SiteMessagePublisherService extends AbstractService implements
     @Override
     public synchronized SiteMessageService getParentService() {
         return (SiteMessageService) super.getParentService();
-    }
-
-    /**
-     * getPublisherType() method is used to return ALARM or MESSAGE. The setting
-     * used to build file mask and processing of files.
-     *
-     * @return <code>PublisherType</code> value of this service.
-     */
-    public synchronized PublisherType getPublisherType() {
-        return this._publisherType;
     }
 
     /**
@@ -547,13 +507,12 @@ public class SiteMessagePublisherService extends AbstractService implements
      * the file is read, data sent to the storage server. There are two modes of
      * operations (LIVE and RECOVERY).
      * <p>
-     * LIVE mode reads the current active ALARM or MESSAGE file and sends the
+     * LIVE mode reads the current active MESSAGE file and sends the
      * data to the storage server. When datehour changes, the file is not
      * completely processed is handed over to the recovery handler.
      *
      * RECOVERY mode reads all files which have not been sent to the storage
-     * server and sends both ALARM and MESSAGE data as a message to prevent old
-     * alarms from triggering an action.
+     * server and sends both MESSAGE data as a message.
      *
      * 20141128 SSD added queue to track record sent and if error is reported
      * then the record is stored in the log for review
@@ -611,7 +570,7 @@ public class SiteMessagePublisherService extends AbstractService implements
                             // log info for tracking
                             logDebug("CS -> PUB, "
                                     + getChildConfig().getConnectionPort()
-                                    + ", " + getPublisherType().name() + ", "
+                                    + ", MESSAGE, "
                                     + line);
 
                             // check for return error
@@ -625,8 +584,7 @@ public class SiteMessagePublisherService extends AbstractService implements
                                     // log error for tracking
                                     logError("CS -> PUB, "
                                             + getChildConfig().getConnectionPort()
-                                            + ", " + getPublisherType().name()
-                                            + ", " + line + ", <error/" + record + ">");
+                                            + ", MESSAGE, " + line + ", <error/" + record + ">");
 
                                     // store the record in recovery file for
                                     // retry (get file of reader and update _CS
@@ -696,8 +654,7 @@ public class SiteMessagePublisherService extends AbstractService implements
                 + getChildConfig().getServiceName()
                 + "_" + getServiceConfig().getConnectionPort() + "_"
                 + getChildConfig().getConnectionPort()
-                + "_" + getPublisherType().name().toString()
-                + "_" + UUID.randomUUID().toString());
+                + "_MESSAGE_" + UUID.randomUUID().toString());
 
         // start the thread to create connection for the service.
         tReader.start();
@@ -729,8 +686,8 @@ public class SiteMessagePublisherService extends AbstractService implements
 
                     // log info for tracking
                     logDebug("PUB -> CS, "
-                            + getChildConfig().getConnectionPort() + ", "
-                            + getPublisherType().name() + ", " + line);
+                            + getChildConfig().getConnectionPort() + ", MESSAGE, "
+                            + line);
 
                     // write the data read to out stream
                     recordQueue.add(line);
@@ -825,9 +782,6 @@ public class SiteMessagePublisherService extends AbstractService implements
     public synchronized void start() throws Exception {
         // call the super method to perform initialization
         super.start();
-
-        // configure the publisher type, alarm or message
-        setFileTypeMap();
 
         // format the file mask using the site id; don't use equipment id it is 
         // included in the message in the file

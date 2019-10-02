@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Built-By: ssdhaliwal
+Build-Jdk: 1.7.0_231
+Class-Path: ElsuFoundation-0.0.1-SNAPSHOT.jar commons-codec-1.12.jar c
+ ommons-io-2.6.jar commons-lang3-3.8.1.jar gson-2.8.5.jar jackson-core
+ -2.9.9.jar jackson-annotations-2.9.9.jar jackson-databind-2.9.9.3.jar
+  JavaAPIforKml-2.2.0.jar jaxb-impl-2.2.jar jaxb-api-2.2.jar stax-api-
+ 1.0-2.jar activation-1.1.jar jaxb-xjc-2.2.jar xmlunit-1.2.jar log4j-a
+ pi-2.12.1.jar log4j-core-2.12.1.jar ElsuNetworkServices-0.0.1-SNAPSHO
+ T.jar
+Main-Class: site.control.SiteController
+Created-By: Maven Integration for Eclipse
+

@@ -45,9 +45,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
     // service specific data, host uri of the equipment which the collector
     // connects to
     private volatile String _hostUri = null;
-    // service specific data, to store the alarm values for the parser field
-    // comparison - from app.config (service.parser.field.values)
-    private volatile List _alarmData = null;
     // service specific data, status to track if the subscriber service is 
     // running or has been shutdown
     private volatile boolean _isSubscriberRunning = false;
@@ -58,7 +55,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
     // subscriber service is still running
     private volatile boolean _isConnectionsCreatorActive = false;
     // service specific data, stores the writer channel
-    private volatile FileChannelTextWriter _alarmWriter = null;
     private volatile FileChannelTextWriter _messageWriter = null;
     // service specific data, stores the recovery period
     private volatile FileRolloverPeriodicityType _recoveryPeriodicity
@@ -108,22 +104,9 @@ public class SiteMessageSubscriberService extends AbstractService implements
      */
     @Override
     protected void initializeLocalProperties() {
-        this._serviceShutdown = getProperty("service.shutdown").toString();
+        this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
         this._connectionTerminator
-                = getProperty("connection.terminator").toString();
-
-        try {
-            this._alarmData = Arrays.asList(
-                    getParentService().getParserFieldValues().split(
-                            getParentService().getParserFieldDelimiter()));
-        } catch (Exception ex) {
-            logError(getClass().toString() + ", initializeLocalProperties(), "
-                    + getServiceConfig().getServiceName() + " on port "
-                    + getServiceConfig().getConnectionPort()
-                    + ", invalid service.parser.field.values, "
-                    + ex.getMessage());
-            this._alarmData = new ArrayList();
-        }
+                = getProperty("application.framework.attributes.key.connection.terminator").toString();
 
         try {
             this._idleTimeout = Integer.parseInt(
@@ -166,26 +149,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
     // </editor-fold>
 
     // <editor-fold desc="class getter/setters">
-    /**
-     * getAlarmData() method returns service specific data, alarm values for the
-     * parser field comparison - from app.config (service.parser.field.values)
-     *
-     * @return <code>List</code> of values used to compare parsed field
-     */
-    public synchronized List getAlarmData() {
-        return this._alarmData;
-    }
-
-    /**
-     * getAlarmWriter() method returns the byte channel used to store the alarm
-     * received by the service connection.
-     *
-     * @return <code>SeekableByteChannel</code>
-     */
-    private synchronized FileChannelTextWriter getAlarmWriter() {
-        return this._alarmWriter;
-    }
-
     /**
      * isConnectionsCreatorActive() method is used to track if the
      * checkConnections method is being processed. checkConnections method uses
@@ -505,10 +468,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
             // thread run method which is executed when thread is started
             @Override
             public void run() {
-                // variable to signal if the message received is an alarm 
-                // message or not
-                boolean isAlarm;
-
                 // capture all exceptions to ensure proper handling of memory and
                 // notification to client
                 try {
@@ -532,43 +491,18 @@ public class SiteMessageSubscriberService extends AbstractService implements
                             try {
                                 // split the input data into separate fields
                                 // based on the field delimiter
-                                String[] parseData = line.substring(0,
-                                        getParentService().getParserFieldLength()).split(
-                                                getParentService().getParserFieldDelimiter());
-                                isAlarm = getAlarmData().contains(
-                                        parseData[getParentService().getParserFieldIndex()]);
+                                // String[] parseData = line.substring(0,
+                                //         getParentService().getParserFieldLength()).split(
+                                //                 getParentService().getParserFieldDelimiter());
 
                                 // log info for tracking
                                 logDebug("SUB -> PUB, "
                                         + getChildConfig().getConnectionPort()
                                         + ", " + getEquipmentId() + ", " + line);
 
-                                // create a message object from the parsed data
-                                SiteMessage message = new SiteMessage(
-                                        getParentService().getSiteId(),
-                                        getEquipmentId(), line);
-
-                                // if alarm message, then store it through the 
-                                // alarm writer
-                                if (isAlarm) {
-                                    getAlarmWriter().write(
-                                            message.getBcsMessage(
-                                                    getDatetimeFormat(),
-                                                    getFieldDelimiter(),
-                                                    GlobalStack.LINESEPARATOR));
-                                } else {
-                                    // this is a message, store it through the
-                                    // message writer
-                                    getMessageWriter().write(
-                                            message.getBcsMessage(
-                                                    getDatetimeFormat(),
-                                                    getFieldDelimiter(),
-                                                    GlobalStack.LINESEPARATOR));
-                                }
-
-                                // clear the message object for collection 
-                                // through garbage collection
-                                message = null;
+                                // this is a message, store it through the
+                                // message writer
+                                getMessageWriter().write(line + getRecordTerminatorOutbound());
                             } catch (Exception ex) {
                                 // increase total message error count
                                 increaseTotalMessagesErrored();
@@ -773,12 +707,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
         isSubscriberRunning(false);
 
         // shutdown the writers if not null, ignore exceptions
-        if (getAlarmWriter() != null) {
-            try {
-                getAlarmWriter().close();
-            } catch (Exception exi) {
-            }
-        }
         if (getMessageWriter() != null) {
             try {
                 getMessageWriter().close();
@@ -815,10 +743,6 @@ public class SiteMessageSubscriberService extends AbstractService implements
 
         // open the writer channels; don't use equipment id it is included in
         // the message in the file
-        this._alarmWriter = new FileChannelTextWriter(String.format(
-                getFileMask(), "%s", "ALM"),
-                getParentService().getLocalStoreDirectory() + "outgoing",
-                getRecoveryPeriodicity());
         this._messageWriter = new FileChannelTextWriter(String.format(
                 getFileMask(), "%s", "MSG"),
                 getParentService().getLocalStoreDirectory() + "outgoing",
