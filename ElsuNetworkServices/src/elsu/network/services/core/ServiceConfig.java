@@ -7,8 +7,7 @@ import java.util.*;
 /**
  * ServiceConfig class is used to store the configuration parameters loaded by
  * the ConfigLoader class from the app.config. Each service has its own
- * ServiceConfig object and all the attributes to include any child service
- * definitions loaded into subcribers or publishers.
+ * ServiceConfig object and all the attributes.
  * <p>
  * Attributes is a basic hashMap (key/value) pair.
  *
@@ -30,15 +29,10 @@ public class ServiceConfig {
     // service class for instantiation through reflection
     private volatile String _serviceClass = null;
 
-    // service type: SERVER, CLIENT, SUBSCRIBER, PUBLISHER
+    // service type: SERVER, CLIENT
     // SERVER type is always configured to have a listener
     // CLIENT type does not have a listener but it can create a custom listener
     // if required through attribute properties
-    // SUBSCRIBER and PUBLISHER types are for child services
-    // - SUBSCRIBER is service which connects to another service to retrieve
-    // data and store it locally
-    // - PUBLISHER is service which reads local data collected by COLLECTOR
-    // and forwarding it to other services
     private volatile ServiceType _serviceType = ServiceType.SERVER;
 
     // service startup type allows control over when the services are started.
@@ -60,12 +54,6 @@ public class ServiceConfig {
     // service at one time
     private volatile int _maximumConnections = 10;
 
-    // list of subcribers defined for the service
-    private volatile ArrayList<ServiceConfig> _subscribers = null;
-
-    // list of publishers defined for the service
-    private volatile ArrayList<ServiceConfig> _publishers = null;
-
     // custom attributes defined for the service
     private volatile Map<String, String> _attributes = null;
     // </editor-fold>
@@ -77,8 +65,6 @@ public class ServiceConfig {
      *
      */
     public ServiceConfig() {
-        this._subscribers = new ArrayList<>();
-        this._publishers = new ArrayList<>();
         this._attributes = new HashMap<>();
     }
     // </editor-fold>
@@ -154,16 +140,6 @@ public class ServiceConfig {
         }
     }
 
-    public ArrayList<ServiceConfig> getPublishers() {
-        ArrayList<ServiceConfig> result = null;
-
-        synchronized (this._runtimeSync) {
-            result = this._publishers;
-        }
-
-        return result;
-    }
-
     public String getServiceClass() {
         String result = "";
 
@@ -227,88 +203,6 @@ public class ServiceConfig {
             this._serviceType = type;
         }
     }
-
-    public ArrayList<ServiceConfig> getSubscribers() {
-        ArrayList<ServiceConfig> result = null;
-        
-        synchronized (this._runtimeSync) {
-            result = this._subscribers;
-        }
-        
-        return result;
-    }
-
-    public ServiceConfig getSubscriber(int port) {
-        ServiceConfig result = null;
-
-        // loop through and create subscriber child services if defined
-        for (ServiceConfig subscriber : getSubscribers()) {
-            // if the child service is set to auto-start, configure the service
-            // otherwise the child service is not processed
-            if (subscriber.getStartupType() == ServiceStartupType.AUTOMATIC) {
-                if (subscriber.getConnectionPort() == port) {
-                    result = subscriber;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public ServiceConfig getSubscriber(String name) {
-        ServiceConfig result = null;
-
-        // loop through and create subscriber child services if defined
-        for (ServiceConfig subscriber : getSubscribers()) {
-            // if the child service is set to auto-start, configure the service
-            // otherwise the child service is not processed
-            if (subscriber.getStartupType() == ServiceStartupType.AUTOMATIC) {
-                if (subscriber.getServiceName().equals(name)) {
-                    result = subscriber;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public ServiceConfig getPublisher(int port) {
-        ServiceConfig result = null;
-
-        // loop through and create subscriber child services if defined
-        for (ServiceConfig publisher : getPublishers()) {
-            // if the child service is set to auto-start, configure the service
-            // otherwise the child service is not processed
-            if (publisher.getStartupType() == ServiceStartupType.AUTOMATIC) {
-                if (publisher.getConnectionPort() == port) {
-                    result = publisher;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public ServiceConfig getPublisher(String name) {
-        ServiceConfig result = null;
-
-        // loop through and create subscriber child services if defined
-        for (ServiceConfig publisher : getPublishers()) {
-            // if the child service is set to auto-start, configure the service
-            // otherwise the child service is not processed
-            if (publisher.getStartupType() == ServiceStartupType.AUTOMATIC) {
-                if (publisher.getServiceName().equals(name)) {
-                    result = publisher;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
     // </editor-fold>
 
     // <editor-fold desc="class methods">
@@ -337,22 +231,6 @@ public class ServiceConfig {
         copyConfig.setStartupType(getStartupType());
         copyConfig.isIgnoreConnectionLimit(isIgnoreConnectionLimit());
         copyConfig.setMaximumConnections(getMaximumConnections());
-
-        // copy of collector configurations from the original object
-        for (ServiceConfig collector : getSubscribers()) {
-            copyConfig.getSubscribers().add(collector.clone());
-
-            // yield processing to other threads
-            Thread.yield();
-        }
-
-        // copy of distributor configurations from the original object
-        for (ServiceConfig publisher : getPublishers()) {
-            copyConfig.getPublishers().add(publisher.clone());
-
-            // yield processing to other threads
-            Thread.yield();
-        }
 
         // copy the original objects attributes to new object
         if (!getAttributes().isEmpty()) {
@@ -393,24 +271,6 @@ public class ServiceConfig {
         sc.isIgnoreConnectionLimit(Boolean.valueOf(config.getProperty(serviceName + ".ignoreConnectionLimit").toString()));
         sc.setMaximumConnections(Integer.valueOf(config.getProperty(serviceName + ".maxConnections").toString()));
 
-        // copy of collector configurations from the original object
-        for (String attrKey : config.getClassSet(serviceName + ".")) {
-            childServiceName = attrKey.replace(".class", "");
-            if (config.getProperty(childServiceName + ".serviceType").toString().equals("SUBSCRIBER")) {
-                childConfig = ServiceConfig.LoadConfig(config, childServiceName);
-                sc.getSubscribers().add(childConfig);
-            }
-        }
-
-        // copy of distributor configurations from the original object
-        for (String attrKey : config.getClassSet(serviceName + ".")) {
-            childServiceName = attrKey.replace(".class", "");
-            if (config.getProperty(childServiceName + ".serviceType").toString().equals("PUBLISHER")) {
-                childConfig = ServiceConfig.LoadConfig(config, childServiceName);
-                sc.getPublishers().add(childConfig);
-            }
-        }
-
         // copy the original objects attributes to new object
         for (String attrKey : config.getKeySet()) {
             if (attrKey.startsWith(serviceName + ".attributes.")) {
@@ -435,30 +295,6 @@ public class ServiceConfig {
         result.append("<startupType>").append(getStartupType()).append("</startupType>");
         result.append("<isIgnoreMaximumConnection>").append(isIgnoreConnectionLimit()).append("</isIgnoreMaximumConnection>");
         result.append("<maximumConnections>").append(getMaximumConnections()).append("</maximumConnections>");
-
-        result.append("<subcribers>")
-                .append("<size>").append(getSubscribers().size()).append("</size>");
-        if (getSubscribers().size() > 0) {
-            for (ServiceConfig conn : getSubscribers()) {
-                result.append(conn.toString());
-
-                // yield processing to other threads
-                Thread.yield();
-            }
-        }
-        result.append("</subcribers>");
-
-        result.append("<publishers>")
-                .append("<size>").append(getPublishers().size()).append("</size>");
-        if (getPublishers().size() > 0) {
-            for (ServiceConfig conn : getPublishers()) {
-                result.append(conn.toString());
-
-                // yield processing to other threads
-                Thread.yield();
-            }
-        }
-        result.append("</publishers>");
 
         result.append("<attributes>")
                 .append("<size>").append(getAttributes().size()).append("</size>");

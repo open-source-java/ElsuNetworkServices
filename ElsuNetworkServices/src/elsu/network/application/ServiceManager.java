@@ -7,13 +7,9 @@ import elsu.network.factory.*;
  * services managed by the framework can support listeners for specific ports or
  * initiate connections to other services.
  * <p>
- * There are two main types of main services: Server or Client and two child
- * services: Subscriber or Publisher. Server service creates a listener and
+ * There are two main types of main services: Server or ClientServer service creates a listener and
  * after accepting the connection and uses the connection input/output streams
- * to perform service actions. Client service is used to support child services
- * and does not create a listener by default. Child services are used to group
- * services under one parent service when multiple actions have common
- * configuration properties.
+ * to perform service actions. Client service connects to a host/port and collects data.
  *
  * 20141128 SSD updated for reflection generics warning on
  * getDeclaredConstructor

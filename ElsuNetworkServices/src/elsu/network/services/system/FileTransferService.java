@@ -13,9 +13,6 @@ import org.apache.commons.codec.binary.*;
 public class FileTransferService extends AbstractService implements IService {
 
     // <editor-fold desc="class private storage">
-    // runtime sync object
-    private Object _runtimeSync = new Object();
-
     // storage for service shutdown string when received terminates the service
     private volatile String _serviceShutdown = "#$#";
 
@@ -123,14 +120,8 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>int</code> value of the connection idle timeout
      */
-    private int getConnectionIdleTimeout() {
-        int result = 0;
-        
-        synchronized (this._runtimeSync) {
-            result = this._connectionTimeout;
-        }
-        
-        return result;
+    private synchronized int getConnectionIdleTimeout() {
+        return this._connectionTimeout;
     }
 
     /**
@@ -140,14 +131,8 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the connection terminator
      */
-    private String getConnectionTerminator() {
-        String result = "";
-        
-        synchronized (this._runtimeSync) {
-            result = this._connectionTerminator;
-        }
-        
-        return result;
+    private synchronized String getConnectionTerminator() {
+    	return this._connectionTerminator;
     }
 
     /**
@@ -156,14 +141,8 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>int</code> value of the buffer size.
      */
-    public int getFileIOBufferSize() {
-        int result = 0;
-        
-        synchronized (this._runtimeSync) {
-            result = this._fileIOBufferSize;
-        }
-        
-        return result;
+    public synchronized int getFileIOBufferSize() {
+    	return this._fileIOBufferSize;
     }
 
     /**
@@ -172,14 +151,8 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the local storage path
      */
-    private String getLocalStoreDirectory() {
-        String result = "";
-        
-        synchronized (this._runtimeSync) {
-            result = this._localStoreDirectory;
-        }
-        
-        return result;
+    private synchronized String getLocalStoreDirectory() {
+    	return this._localStoreDirectory;
     }
 
     /**
@@ -189,14 +162,8 @@ public class FileTransferService extends AbstractService implements IService {
      *
      * @return <code>Boolean</code> value of the useAlways variable.
      */
-    private Boolean getLocalStoreUseAlways() {
-        boolean result = false;
-        
-        synchronized (this._runtimeSync) {
-            result = this._localStoreUseAlways;
-        }
-        
-        return result;
+    private synchronized Boolean getLocalStoreUseAlways() {
+    	return this._localStoreUseAlways;
     }
     // </editor-fold>
 

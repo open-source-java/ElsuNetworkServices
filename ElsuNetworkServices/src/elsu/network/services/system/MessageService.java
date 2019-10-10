@@ -3,11 +3,14 @@ package elsu.network.services.system;
 import elsu.common.DateUtils;
 import elsu.common.FileUtils;
 import elsu.common.GlobalStack;
+import elsu.io.FileChannelTextWriter;
+import elsu.io.FileRolloverPeriodicityType;
 import elsu.network.application.*;
 import elsu.network.core.ServiceStartupType;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
+import java.net.Socket;
 import java.util.Calendar;
 
 public class MessageService extends AbstractService implements IService {
@@ -24,17 +27,38 @@ public class MessageService extends AbstractService implements IService {
 	// stores the file mask - allows the files to include date or other
 	// service variables
 	private volatile String _localStoreMask = null;
+	// service specific data, host uri of the equipment which the collector
+	// connects to
+	private volatile String _hostUri = null;
+	// service specific port # of the equipment
+	private volatile int _port = 0;
+	// service specific data, status to track if the subscriber service is
+	// running or has been shutdown
+	private volatile boolean _isSubscriberRunning = false;
 	// service specific data, site name the service is supporting
 	private volatile String _siteName = null;
 	// service specific data, site id of the site name
 	private volatile int _siteId = 0;
+	// stores the file mask - allows the files to include date or other
+	// service variables
+	private volatile String _fileMask = null;
+	// service specific data, stores the idle timeout used when connection to
+	// a host is not available
+	private volatile int _idleTimeout = 5000;
+	// service specific data, status to track if te connection maintained by the
+	// subscriber service is still running
+	private volatile boolean _isConnectionsCreatorActive = false;
+	// service specific data, stores the writer channel
+	private volatile FileChannelTextWriter _messageWriter = null;
+	// output terminator for output
+	private volatile String _recordTerminatorOutbound = "\r\n";
 	// </editor-fold>
 
 	// <editor-fold desc="class constructor destructor">
 	/**
-	 * MessageService(...) constructor instantiates the class and
-	 * loads the required properties from app.config to local class variables
-	 * for fast direct access.
+	 * MessageService(...) constructor instantiates the class and loads the
+	 * required properties from app.config to local class variables for fast
+	 * direct access.
 	 *
 	 * @param factory
 	 * @param threadGroup
@@ -58,19 +82,10 @@ public class MessageService extends AbstractService implements IService {
 	@Override
 	protected void initializeLocalProperties() {
 		this._serviceShutdown = getProperty("application.framework.attributes.key.service.shutdown").toString();
-		this._connectionTerminator = getProperty("application.framework.attributes.key.connection.terminator").toString();
+		this._connectionTerminator = getProperty("application.framework.attributes.key.connection.terminator")
+				.toString();
 		this._localStoreDirectory = getServiceConfig().getAttribute("key.service.localStore.directory").toString();
 		this._localStoreMask = getServiceConfig().getAttribute("key.service.localStore.mask").toString();
-
-		System.out.println("1001-01");
-		try {
-			isListener(Boolean.valueOf(getServiceConfig().getAttribute("key.service.listener").toString()));
-		} catch (Exception ex) {
-			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
-					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.listener property, "
-					+ ex.getMessage());
-			isListener(false);
-		}
 
 		this._siteName = getServiceConfig().getAttribute("key.service.site.name").toString();
 
@@ -82,10 +97,69 @@ public class MessageService extends AbstractService implements IService {
 					+ ex.getMessage());
 			this._siteId = 0;
 		}
+
+		try {
+			this._idleTimeout = Integer
+					.parseInt(getServiceConfig().getAttribute("key.service.monitor.idleTimeout").toString());
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.monitor.idleTimeout, "
+					+ ex.getMessage());
+			this._idleTimeout = 5000;
+		}
+
+		this._hostUri = getServiceConfig().getAttribute("key.service.site.host").toString();
+
+		try {
+			this._port = Integer
+					.parseInt(getServiceConfig().getAttribute("key.service.site.port").toString());
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.site.port, "
+					+ ex.getMessage());
+			this._port = 0;
+		}
+
+		try {
+			this._recordTerminatorOutbound = getServiceConfig().getAttribute("key.record.terminator.outbound").toString();
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid record.terminator.outbound, "
+					+ ex.getMessage());
+			this._recordTerminatorOutbound = "\r\n";
+		}
 	}
 	// </editor-fold>
 
 	// <editor-fold desc="class getter/setters">
+	/**
+	 * isConnectionsCreatorActive() method is used to track if the
+	 * checkConnections method is being processed. checkConnections method uses
+	 * a thread to create the connection to the equipment - if the thread is
+	 * running trying to connect to the equipment, then all other requests are
+	 * ignored.
+	 *
+	 * @return <code>boolean</code> value of the status of connections
+	 */
+	private synchronized boolean isConnectionsCreatorActive() {
+		return this._isConnectionsCreatorActive;
+	}
+
+	/**
+	 * isConnectionsCreatorActive(...) method is used to track if the
+	 * checkConnections method is being processed. checkConnections method uses
+	 * a thread to create the connection to the equipment - if the thread is
+	 * running trying to connect to the equipment, then all other requests are
+	 * ignored.
+	 *
+	 * @param value
+	 * @return <code>boolean</code> value of the status of connections
+	 */
+	private synchronized boolean isConnectionsCreatorActive(boolean active) {
+		this._isConnectionsCreatorActive = active;
+		return isConnectionsCreatorActive();
+	}
+
 	/**
 	 * getConnectionTerminator() method returns the connection terminator used
 	 * to signal the connection to terminate gracefully.
@@ -94,6 +168,48 @@ public class MessageService extends AbstractService implements IService {
 	 */
 	public synchronized String getConnectionTerminator() {
 		return this._connectionTerminator;
+	}
+
+	/**
+	 * getFileMask() method returns the string value of the file mask used to
+	 * create writer files and read incoming files from the parent service
+	 *
+	 * @return <code>String</code> value of the file mask
+	 */
+	public synchronized String getFileMask() {
+		return this._fileMask;
+	}
+
+	/**
+	 * setFileMask(...) method is used to set the file mask value after local
+	 * information like equipment id is updated to reduce the parsing when the
+	 * filename is formatted.
+	 *
+	 * @param value
+	 */
+	private synchronized void setFileMask(String mask) {
+		this._fileMask = mask;
+	}
+
+	/**
+	 * getHostUri() method returns the uri of the equipment this service will be
+	 * connecting to.
+	 *
+	 * @return <code>String</code> value of the host uri
+	 */
+	public synchronized String getHostUri() {
+		return this._hostUri;
+	}
+
+	/**
+	 * getIdleTimeout() method returns the timeout value used to pause the
+	 * reader. It is also used to pause the loop when trying to connect to the
+	 * equipment and it is not responding.
+	 *
+	 * @return <code>int</code> value of the timeout
+	 */
+	public synchronized int getIdleTimeout() {
+		return _idleTimeout;
 	}
 
 	/**
@@ -112,8 +228,7 @@ public class MessageService extends AbstractService implements IService {
 
 	/**
 	 * getLocalStoreMask() method returns the file mask used to create file
-	 * names for saving data received by collectors or reading data by
-	 * publishers.
+	 * names for saving data received by collectors or reading data.
 	 * <p>
 	 * %s_%s_%s.txt currently defined is formatted with site_id, datetime, and
 	 * equipment id.
@@ -125,13 +240,70 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
+	 * getFileChannelWriter() method returns the byte channel used to store the
+	 * message received by the service connection.
+	 *
+	 * @return <code>SeekableByteChannel</code>
+	 */
+	private synchronized FileChannelTextWriter getMessageWriter() {
+		return this._messageWriter;
+	}
+
+	/**
+	 * getPort() method returns the equipment id (also used as port) of the
+	 * connection. The service uses this to open the connection to the equipment
+	 * to transfer messages.
+	 *
+	 * @return <code>int</code> value of the equipment id
+	 */
+	public synchronized int getPort() {
+		return this._port;
+	}
+
+	/**
+	 * getRecordTerminatorOutbound() method returns the record terminator which
+	 * is sent with the outbound packets. The method/config allows custom
+	 * terminator to be specified so both incoming and outbound can work
+	 * independently.
+	 *
+	 * @return string
+	 */
+	private synchronized String getRecordTerminatorOutbound() {
+		return this._recordTerminatorOutbound;
+	}
+
+	/**
 	 * getServiceAbstractShutdown() method returns the value which when received
 	 * through the client will shutdown the service.
 	 *
 	 * @return <code>String</code> value of the shutdown string
 	 */
 	public synchronized String getServiceShutdown() {
-		return this._serviceShutdown;
+        return this._serviceShutdown;
+	}
+
+	/**
+	 * isSubscriberRunning() method is used to check if the child service is
+	 * running. If the value is false, then the service is not active and all
+	 * connections will be forced closed.
+	 *
+	 * @return <code>boolean</code> value of the running variable
+	 */
+	public synchronized boolean isSubscriberRunning() {
+		return this._isSubscriberRunning;
+	}
+
+	/**
+	 * isSubscriberRunning(...) method allows the value of the child service
+	 * running property to be changed and queried. If the value is false, then
+	 * the service is not active and all connections will be forced closed.
+	 *
+	 * @param running
+	 * @return <code>boolean</code> value of the running variable
+	 */
+	public synchronized boolean isSubscriberRunning(boolean running) {
+		this._isSubscriberRunning = running;
+		return isSubscriberRunning();
 	}
 
 	/**
@@ -156,6 +328,83 @@ public class MessageService extends AbstractService implements IService {
 	// </editor-fold>
 
 	// <editor-fold desc="class methods">
+	/**
+	 * checkConnections() method tries to open a connection to the equipment
+	 * which will be providing data for collection by this subscriber. To make
+	 * sure the method does not block execution, the connection is created using
+	 * a thread. As long as the thread is trying to create a connection the
+	 * method will try to reconnect and new thread will not be started.
+	 */
+	@Override
+	public synchronized void checkConnections() {
+		// check if the thread is active trying to connect?, if not then
+		// continue, else exit
+		if (!isConnectionsCreatorActive()) {
+			// update thread indicator to ensure multiple threads are not
+			// spawned
+			isConnectionsCreatorActive(true);
+
+			// temp location of parameter to pass to the thread
+			final IService collector = this;
+
+			// thread to create connection to the equipment
+			Thread tConnections = new Thread(new Runnable() {
+				// thread run method which is executed when thread is started
+				@Override
+				public void run() {
+					// capture all exceptions to ensure proper handling of
+					// memory and
+					// notification to client
+					try {
+						// if the service is running and subscriber is not
+						// running then try to create the connection
+						while (isRunning() && !isSubscriberRunning()) {
+							// capture all exceptions to ensure proper handling
+							// of memory and
+							// notification to client
+							try {
+								// create socket to the equipment
+								Socket client = new Socket(getHostUri(), getPort());
+
+								// create connection for the socket
+								Connection dsConn = new Connection(client, collector);
+
+								// add the connection to the service list
+								addConnection(client, dsConn);
+
+								// indicate that the subscriber is running
+								isSubscriberRunning(true);
+							} catch (Exception ex) {
+								// indicate that the subscriber is not runing
+								isSubscriberRunning(false);
+
+								// log error for tracking
+								logError(getClass().toString() + ", checkConnections(), "
+										+ getServiceConfig().getServiceName() + ", error creating connection "
+										+ getServiceConfig().getServiceName() + " on port " + getPort() + ", "
+										+ ex.getMessage());
+							}
+
+							// yield processing to other threads for specified
+							// time, any exceptions are ignored
+							try {
+								Thread.sleep(getIdleTimeout());
+							} catch (Exception exi) {
+							}
+						}
+					} catch (Exception exi) {
+					} finally {
+						// connection was created, reset the indicator
+						isConnectionsCreatorActive(false);
+					}
+				}
+			});
+
+			// start the thread to create connection for the service.
+			tConnections.start();
+		}
+	}
+
 	/**
 	 * serve(...) method is the main method of the service which processes the
 	 * client socket using the streams (in/out). The method is shared by all
@@ -212,21 +461,12 @@ public class MessageService extends AbstractService implements IService {
 						// String[] parseData = line.split(Pattern.quote(
 						// getFieldDelimiter()));
 
-						// create file name based on the site id,
-						// and equipment id provided in the message.
-						// all messages are stored in the local storage
-						// directory as identified in the services
-						// configuration
-						String filename = getLocalStoreDirectory() + "incomming\\"
-								+ String.format(getLocalStoreMask(), this.getSiteId(), DateUtils
-										.convertDate2String(Calendar.getInstance().getTime(), getDatetimeFormat()),
-										this.getSiteName() + "_CS");
-
 						// if there is an exception in saving we need
 						// to notify the client and exit.
 						try {
-							// write the message to file for delivery
-							FileUtils.writeFile(filename, line + GlobalStack.LINESEPARATOR, true);
+							// this is a message, store it through the
+							// message writer
+							getMessageWriter().write(line + getRecordTerminatorOutbound());
 						} catch (Exception ex) {
 							// increase the message error queue
 							increaseTotalMessagesErrored();
@@ -237,10 +477,6 @@ public class MessageService extends AbstractService implements IService {
 
 						}
 
-						// send response with message ok_code
-						out.print(getStatusOk() + getRecordTerminator());
-						out.flush();
-
 						// increase the message sent count
 						increaseTotalMessagesSent();
 					} catch (Exception ex) {
@@ -250,18 +486,6 @@ public class MessageService extends AbstractService implements IService {
 						// log error for tracking
 						logError(getClass().toString() + ", serve(), " + getServiceConfig().getServiceName() + ", "
 								+ getStatusInvalidContent() + ", error parsing fields, " + ex.getMessage());
-
-						// there was an exception in parsing the
-						// message, but ensure the client
-						// did not disconnect - if client is not
-						// connected ignore the exception.
-						try {
-							// send response with message invalid content
-							out.print(getClass().toString() + ", serve(), " + getServiceConfig().getServiceName() + ", "
-									+ getStatusInvalidContent() + ", " + ex.getMessage() + getRecordTerminator());
-							out.flush();
-						} catch (Exception exi) {
-						}
 					}
 				}
 
@@ -273,6 +497,14 @@ public class MessageService extends AbstractService implements IService {
 			logError(getClass().toString() + ", serve(), " + getServiceConfig().getServiceName() + ", "
 					+ ex.getMessage());
 		} finally {
+			// update the subcriber status to false to signal connection
+			// monitor to stop running if it is running
+			isSubscriberRunning(false);
+
+			// set connection status to false to signal all serving
+			// loops to exit
+			cConn.isActive(false);
+
 			// close out all open in/out streams.
 			try {
 				try {
@@ -284,6 +516,29 @@ public class MessageService extends AbstractService implements IService {
 			}
 			try {
 				in.close();
+			} catch (Exception exi) {
+			}
+
+			// log info for tracking
+			logInfo(getClass().toString() + ", server(), " + getServiceConfig().getServiceName() + " on port "
+					+ getServiceConfig().getConnectionPort() + ", connection closed by server");
+		}
+	}
+
+	/**
+	 * shutdown() method overload from the super class is used to ensure all
+	 * local allocations or objects are properly disposed.
+	 */
+	@Override
+	public synchronized void shutdown() {
+		// call the super method to perform termination; this also closes all
+		// open connections
+		super.shutdown();
+
+		// shutdown the writers if not null, ignore exceptions
+		if (getMessageWriter() != null) {
+			try {
+				getMessageWriter().close();
 			} catch (Exception exi) {
 			}
 		}
@@ -299,6 +554,24 @@ public class MessageService extends AbstractService implements IService {
 	public synchronized void start() throws Exception {
 		// call the super method to perform initialization
 		super.start();
+
+		// format the file mask using the site id
+		setFileMask(String.format(getLocalStoreMask(), getSiteId(), "%s", "%s"));
+
+		// clear all old *_CS.txt files, old messages from parent service
+		// are invalid and should not be processed
+		// 20150314 ssd added mkdirs to prevent errors in processing
+		new File(getLocalStoreDirectory() + "incomming").mkdirs();
+		//FileUtils.deleteFiles(getLocalStoreDirectory() + "incomming\\",
+		//		String.format(getFileMask(), ".*", getSiteName() + "_CS"), false);
+
+		// open the writer channels; don't use equipment id it is included in
+		// the message in the file
+		this._messageWriter = new FileChannelTextWriter(String.format(getFileMask(), "%s", "MSG"),
+				getLocalStoreDirectory() + "incomming", true);
+
+        // validate the connection to the equipment
+        checkConnections();
 	}
 	// </editor-fold>
 }

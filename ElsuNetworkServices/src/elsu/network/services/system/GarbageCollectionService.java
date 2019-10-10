@@ -12,9 +12,6 @@ public class GarbageCollectionService extends AbstractService
         implements IService {
 
     // <editor-fold desc="class private storage">
-    // runtime sync object
-    private Object _runtimeSync = new Object();
-
     // local storage for service shutdown string
     private volatile String _serviceShutdown = "#$#";
 
@@ -71,24 +68,12 @@ public class GarbageCollectionService extends AbstractService
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private String getConnectionTerminator() {
-        String result = "";
-        
-        synchronized (this._runtimeSync) {
-            result = this._connectionTerminator;
-        }
-        
-        return result;
+    private synchronized String getConnectionTerminator() {
+    	return this._connectionTerminator;
     }
 
-    private int getGCDelay() {
-        int result = 0;
-        
-        synchronized (this._runtimeSync) {
-            result = this._gcDelay;
-        }
-        
-        return result;
+    private synchronized int getGCDelay() {
+    	return this._gcDelay;
     }
 
     /**
@@ -97,14 +82,8 @@ public class GarbageCollectionService extends AbstractService
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private String getServiceShutdown() {
-        String result = "";
-        
-        synchronized (this._runtimeSync) {
-            result = this._serviceShutdown;
-        }
-        
-        return result;
+    private synchronized String getServiceShutdown() {
+    	return this._serviceShutdown;
     }
     // </editor-fold>
 
@@ -163,10 +142,15 @@ public class GarbageCollectionService extends AbstractService
             // log error for tracking
             logError(getClass().toString() + ", serve(), "
                     + getServiceConfig().getServiceName() + " on port "
-                    + getChildConfig().getConnectionPort() + ", "
+                    + getServiceConfig().getConnectionPort() + ", "
                     + ex.getMessage());
         } finally {
-            // we have exited the method, but if the service is still running
+			// set connection status to false to signal all serving
+			// loops to exit
+			conn.isActive(false);
+			removeConnection(conn);
+
+			// we have exited the method, but if the service is still running
             // restart the connection
             if (isRunning()) {
                 checkConnections();

@@ -28,13 +28,8 @@ public abstract class AbstractService extends AbstractServiceProperties
     // <editor-fold desc="class private storage">
     // runtime sync object
     private Object _runtimeSync = new Object();
-    // storage for all child services; normally null.  if child service then
-    // this is null since child services cannot have child services
-    private volatile Map<Integer, IService> _childServices;
     // used by child service to back reference the parent service
     private volatile IService _parentService = null;
-    // used to store child service config
-    private volatile ServiceConfig _childConfig = null;
     // reflects if the listener is defined by the service
     private volatile boolean _isListener = false;
     // reference to listener object for the service
@@ -69,9 +64,6 @@ public abstract class AbstractService extends AbstractServiceProperties
         // store the thread group for use by other objects
         setThreadGroup(new ThreadGroup(threadGroup));
 
-        // create a hashMap to store the child service objects
-        this._childServices = new HashMap<>();
-
         // local config properties for local reference by class method
         // initializeLocalProperties();
         // initialize logger if serviceConfig defines log.filename
@@ -99,22 +91,7 @@ public abstract class AbstractService extends AbstractServiceProperties
         if (getServiceConfig().getServiceType() == ServiceType.SERVER) {
             this._isListener = true;
         } else {
-            if (getChildConfig() != null) {
-                try {
-                    this._isListener = Boolean.valueOf(
-                            getServiceConfig().getAttributes().get(
-                                    "key.service.listener").toString());
-                } catch (Exception ex) {
-                    logError(getClass().toString()
-                            + ", initializeLocalProperties(), "
-                            + getServiceConfig().getServiceName() + " on port "
-                            + getServiceConfig().getConnectionPort()
-                            + ", invalid service.listener, " + ex.getMessage());
-                    this._isListener = false;
-                }
-            } else {
-                this._isListener = false;
-            }
+            this._isListener = false;
         }
 
         // initialize log for the service
@@ -230,48 +207,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     // </editor-fold>
     // <editor-fold desc="class getter/setters">
     /**
-     * getChildConfig() method returns the child configuration object. If this
-     * is not a child service, the value is null.
-     *
-     * @return <code>ServiceAbstractConfig</code> is the configuration object
-     * for the child service.
-     */
-    @Override
-    public ServiceConfig getChildConfig() {
-        ServiceConfig result = null;
-
-        synchronized (this._runtimeSync) {
-            result = this._childConfig;
-        }
-
-        return result;
-    }
-
-    /**
-     * setChildConfig() method stores the config object for the child service.
-     * The method is used by child service constructors to store the their
-     * configuration object.
-     *
-     * @param config
-     */
-    protected void setChildConfig(ServiceConfig config) {
-        synchronized (this._runtimeSync) {
-            this._childConfig = config;
-        }
-    }
-
-    /**
-     * getChildServiceAbstracts() method returns the hashMap of all the child
-     * services for the parent service. This map will be empty if this service
-     * is a child service.
-     *
-     * @return <code>Map</code> returns the collection of the child services.
-     */
-    public Map<Integer, IService> getChildServices() {
-        return _childServices;
-    }
-
-    /**
      * getListener() method returns the service listener object (if created),
      * else null reference is returned.
      *
@@ -320,34 +255,6 @@ public abstract class AbstractService extends AbstractServiceProperties
         }
 
         return isListener();
-    }
-
-    /**
-     * getParentServiceAbstract() method returns the parent service object for
-     * the child service. This will return null if this is not a child service.
-     *
-     * @return <code>IService</code> returns the service object
-     */
-    public IService getParentService() {
-        IService result = null;
-
-        synchronized (this._runtimeSync) {
-            result = this._parentService;
-        }
-
-        return result;
-    }
-
-    /**
-     * setParentServiceAbstract(...) method sets the parent service object for
-     * the child service.
-     *
-     * @param service is the object reference of the parent service
-     */
-    protected void setParentService(IService service) {
-        synchronized (this._runtimeSync) {
-            this._parentService = service;
-        }
     }
     // </editor-fold>
 
@@ -595,77 +502,6 @@ public abstract class AbstractService extends AbstractServiceProperties
     }
 
     /**
-     * addChildServiceAbstract(...) method adds the child service to the child
-     * service collection list. The service mapping is based on the port of the
-     * service, so only one service can be associated to the port. The service
-     * is started upon completion of the method.
-     *
-     * @param service
-     * @param port
-     * @throws IOException
-     */
-    public void addChildService(IService service, int port)
-            throws Exception {
-        // key for hash table lookup
-        Integer key = new Integer(port);
-
-        // check if the service for the port already exists, if yes, then
-        // return error
-        if (getChildServices().get(key) != null) {
-            throw new IllegalArgumentException(getClass().toString()
-                    + "//addChildService//Port " + port
-                    + " already in use.");
-        }
-
-        // store the service with the port as the key for lookup
-        synchronized (this._runtimeSync) {
-            getChildServices().put(key, service);
-        }
-
-        // signal the service to start; there is no delayed start for child
-        // services
-        service.start();
-    }
-
-    /**
-     * removeChildServiceAbstract(...) method removes the child service based on
-     * the port passed. If valid service port, the service associated is also
-     * shutdown.
-     *
-     * @param port
-     * @return
-     */
-    public boolean removeChildService(int port) {
-        // key for hash table lookup
-        Integer key = new Integer(port);
-
-        // check if the service for the port exists, if no, then
-        // return, cannot remove, return false signalling error
-        final IService service
-                = (IService) getChildServices().get(key);
-        if (service == null) {
-            return false;
-        }
-
-        // remove the key from the hash table
-        synchronized (this._runtimeSync) {
-            getChildServices().remove(key);
-        }
-
-        // signal the service to shutdown
-        service.shutdown();
-
-        // log for debugging
-        logInfo(getClass().toString()
-                + ", removeChildService(), stopping service "
-                + service.getClass().getName()
-                + " on port " + port);
-
-        // return true, no error in removing the service
-        return true;
-    }
-
-    /**
      * start() method is used to provide all services with a method to allow for
      * last minute initialization, validation, and then initiation of
      * processing.
@@ -751,24 +587,6 @@ public abstract class AbstractService extends AbstractServiceProperties
             // clear the connections list to prevent gc cycles
             al.clear();
         }
-
-        // loop through all the child services, do not use iterator for the 
-        // services list because removeChildService method updates the list 
-        // when removing service and will cause exception in the iterator
-        ArrayList<Integer> aKeys;
-        aKeys = new ArrayList<>(getChildServices().keySet());
-
-        // for each service in the list
-        for (Integer key : aKeys) {
-            // extract the port # which is the service map key
-            // Integer port = Integer.parseInt(key.toString());
-
-            // remove the child serivce, key = port for the service
-            removeChildService(key);
-
-            // yield processing to other threads
-            Thread.yield();
-        }
     }
     // </editor-fold>
 
@@ -846,30 +664,7 @@ public abstract class AbstractService extends AbstractServiceProperties
         result.append("<isListener>").append(isListener()).append("</isListener>");
         result.append("<isRunning>").append(isRunning()).append("</isRunning>");
         result.append("<maxConnections>").append(getServiceConfig().getMaximumConnections()).append("</maxConnections>");
-
-        if (getChildConfig() != null) {
-            result.append("<childConfig>").append(getChildConfig().toString()).append("</childConfig>");
-        } else {
-            result.append("<serviceConfig>").append(getServiceConfig().toString()).append("</serviceConfig>");
-        }
-
-        result.append("<childServices>")
-                .append("<size>").append(getChildServices().size()).append("</size>");
-        if (!getChildServices().isEmpty()) {
-            ArrayList<Integer> aKeys;
-            aKeys = new ArrayList<>(getChildServices().keySet());
-
-            for (Integer key : aKeys) {
-                // key = port for the service
-                IService service
-                        = (IService) getChildServices().get(key);
-
-                result.append(service.toString());
-
-                Thread.yield();
-            }
-        }
-        result.append("</childServices>");
+        result.append("<serviceConfig>").append(getServiceConfig().toString()).append("</serviceConfig>");
 
         result.append(super.toString());
         result.append("</object>");

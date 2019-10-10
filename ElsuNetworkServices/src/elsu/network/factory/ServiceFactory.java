@@ -13,13 +13,9 @@ import java.util.*;
  * ServiceFactory processes the config file or config params provided as
  * arguments and returns the service.
  * <p>
- * There are two main types of main services: Server or Client and two child
- * services: Subscriber or Publisher. Server service creates a listener and
+ * There are two main types of main services: Server or Client. Server service creates a listener and
  * after accepting the connection and uses the connection input/output streams
- * to perform service actions. Client service is used to support child services
- * and does not create a listener by default. Child services are used to group
- * services under one parent service when multiple actions have common
- * configuration properties.
+ * to perform service actions. Client service is used to connect to host/port and collect data.
  *
  * 20141128 SSD updated for reflection generics warning on
  * getDeclaredConstructor
@@ -119,63 +115,20 @@ public abstract class ServiceFactory {
         IService service = null;
 
         try {
-            // make sure this is not a child service type: PUBLISHER or SUBSCRIBER
-            if (serviceManager.getConfig().getProperty(serviceName + ".serviceType") == null) {
-            } else
-            if (serviceManager.getConfig().getProperty(serviceName + ".serviceType").toString().equals("SUBSCRIBER")
-                    || serviceManager.getConfig().getProperty(serviceName + ".serviceType").toString().equals("PUBLISHER")) {
-                // ignore this class type
-            } else {
-                // extract the service properties for parsing
-                serviceConfig = ServiceConfig.LoadConfig(serviceManager.getConfig(), serviceName);
+            // extract the service properties for parsing
+            serviceConfig = ServiceConfig.LoadConfig(serviceManager.getConfig(), serviceName);
 
-                // control service is a custom service and there does not use
-                // reflection but direct instantiation.
-                if (serviceName.equals("application.services.service.controlService")) {
-                    // is the service disabled, if not create an instance of
-                    // the service
-                    if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {
-                        // log the action
-                        serviceManager.logInfo(".. service loaded (" + serviceName + ")");
-
-                        // create the service instance
-                        service = new ControlService(serviceManager, serviceConfig);
-
-                        // connect the factory event listeners
-                        ((IEventPublisher) service).addEventListener(serviceManager);
-                        serviceManager.addEventListener((IEventSubscriber) service);
-
-                        // add the service to the service list in the factory
-                        serviceManager.addService(service);
-                    }
-                } else if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {
-                    // service is not control service, so if it is not 
-                    // disabled process the service properties
-
+            // control service is a custom service and there does not use
+            // reflection but direct instantiation.
+            if (serviceName.equals("application.services.service.controlService")) {
+                // is the service disabled, if not create an instance of
+                // the service
+                if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {
                     // log the action
                     serviceManager.logInfo(".. service loaded (" + serviceName + ")");
 
-                    // using reflection, load the class for the service
-                    Class<?> serviceClass = Class.forName(serviceConfig.getServiceClass());
-
-                    // create service constructor discovery type parameter array
-                    // populate it with the required class types
-                    Class<?>[] argTypes = {String.class, 
-                        ServiceManager.class, ServiceConfig.class};
-
-                    // retrieve the matching constructor for the service using
-                    // reflection
-                    Constructor<?> cons = serviceClass.getDeclaredConstructor(
-                            argTypes);
-
-                    // create parameter array and populate it with values to 
-                    // pass to the service constructor
-                    Object[] arguments
-                            = {serviceConfig.getServiceClass(), serviceManager, serviceConfig};
-
-                    // create new instance of the service using the discovered
-                    // constructor and parameters
-                    service = (IService) cons.newInstance(arguments);
+                    // create the service instance
+                    service = new ControlService(serviceManager, serviceConfig);
 
                     // connect the factory event listeners
                     ((IEventPublisher) service).addEventListener(serviceManager);
@@ -184,10 +137,45 @@ public abstract class ServiceFactory {
                     // add the service to the service list in the factory
                     serviceManager.addService(service);
                 }
+            } else if (serviceConfig.getStartupType() != ServiceStartupType.DISABLED) {
+                // service is not control service, so if it is not 
+                // disabled process the service properties
 
-                // yield processing to other threads
-                Thread.yield();
+                // log the action
+                serviceManager.logInfo(".. service loaded (" + serviceName + ")");
+
+                // using reflection, load the class for the service
+                Class<?> serviceClass = Class.forName(serviceConfig.getServiceClass());
+
+                // create service constructor discovery type parameter array
+                // populate it with the required class types
+                Class<?>[] argTypes = {String.class, 
+                    ServiceManager.class, ServiceConfig.class};
+
+                // retrieve the matching constructor for the service using
+                // reflection
+                Constructor<?> cons = serviceClass.getDeclaredConstructor(
+                        argTypes);
+
+                // create parameter array and populate it with values to 
+                // pass to the service constructor
+                Object[] arguments
+                        = {serviceConfig.getServiceClass(), serviceManager, serviceConfig};
+
+                // create new instance of the service using the discovered
+                // constructor and parameters
+                service = (IService) cons.newInstance(arguments);
+
+                // connect the factory event listeners
+                ((IEventPublisher) service).addEventListener(serviceManager);
+                serviceManager.addEventListener((IEventSubscriber) service);
+
+                // add the service to the service list in the factory
+                serviceManager.addService(service);
             }
+
+            // yield processing to other threads
+            Thread.yield();
         } catch (Exception ex) {
             // log error if there was any exception in processing during
             // reflection or parameter discovery and throw it to allow calling

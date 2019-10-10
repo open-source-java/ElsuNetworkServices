@@ -34,8 +34,7 @@ import java.util.*;
  */
 public class ControlService extends AbstractService implements IService {
 
-    // <editor-fold desc="class private storage">
-    // runtime sync object
+	// runtime sync object
     private Object _runtimeSync = new Object();
 
     // local storage for service shutdown string
@@ -99,7 +98,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> returns the connection terminator value.
      */
-    private String getConnectionTerminator() {
+    private synchronized String getConnectionTerminator() {
         String result = "";
 
         synchronized (this._runtimeSync) {
@@ -116,7 +115,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the password.
      */
-    private String getPassword() {
+    private synchronized String getPassword() {
         String result = "";
 
         synchronized (this._runtimeSync) {
@@ -132,7 +131,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the local store.
      */
-    private String getLocalStorage() {
+    private synchronized String getLocalStorage() {
         String result = "";
 
         synchronized (this._runtimeSync) {
@@ -148,7 +147,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * @return <code>String</code> value of the shutdown string
      */
-    private String getServiceShutdown() {
+    private synchronized String getServiceShutdown() {
         String result = "";
 
         synchronized (this._runtimeSync) {
@@ -169,7 +168,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @return <code>boolean</code> value of the comparison
      */
-    private boolean commandPassword(StringTokenizer tokens,
+    private synchronized boolean commandPassword(StringTokenizer tokens,
             PrintWriter out) {
         // declare local evaluation for return
         boolean result = false;
@@ -204,7 +203,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws Exception
      */
-    private void commandAddXMLFile(String configFilename,
+    private synchronized void commandAddXMLFile(String configFilename,
             PrintWriter out) throws Exception {
         // local list to track the services which were created through this
         // method
@@ -278,7 +277,7 @@ public class ControlService extends AbstractService implements IService {
      *
      * 20141119 ssd added to support direct xml configuration
      */
-    private void commandAddXMLString(String config,
+    private synchronized void commandAddXMLString(String config,
             PrintWriter out) throws Exception {
         // get local storage and make sure it exists
         String lStore = getLocalStorage();
@@ -311,7 +310,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws Exception
      */
-    private void commandAddConfig(String serviceName,
+    private synchronized void commandAddConfig(String serviceName,
             StringTokenizer tokens,
             PrintWriter out) throws Exception {
         // get config from factory for local use
@@ -350,58 +349,12 @@ public class ControlService extends AbstractService implements IService {
 
                         // if the key/value pair is valid
                         if (newAttr.length == 2) {
-                            // 20141119 ssd added to allow child service
-                            // publishers and subscribers to be configured
-                            if (newAttr[0].contains(":")) {
-                                // get the child type and port #
-                                String[] keys = newAttr[0].split(":");
+                            // remove the old value
+                            configObject.getAttributes().remove(newAttr[0]);
 
-                                // check the child type and update the attributes
-                                ServiceConfig childConfigObject;
-
-                                switch (keys[0]) {
-                                    case "sub": {
-                                        int childPort = Integer.parseInt(keys[1]);
-                                        childConfigObject
-                                                = configObject.getSubscriber(
-                                                        childPort);
-                                        // remove the old value
-                                        childConfigObject.getAttributes().remove(
-                                                keys[2]);
-                                        // store the new value
-                                        childConfigObject.getAttributes().put(
-                                                keys[2], newAttr[1]);
-                                        break;
-                                    }
-                                    case "pub": {
-                                        int childPort = Integer.parseInt(keys[1]);
-                                        childConfigObject
-                                                = configObject.getPublisher(
-                                                        childPort);
-                                        // remove the old value
-                                        childConfigObject.getAttributes().remove(
-                                                keys[2]);
-                                        // store the new value
-                                        childConfigObject.getAttributes().put(
-                                                keys[2], newAttr[1]);
-                                        break;
-                                    }
-                                    default:
-                                        // notify client value ignored
-                                        out.print(getStatusInvalidContent() + ", "
-                                                + newAttr[0]
-                                                + getRecordTerminator());
-                                        out.flush();
-                                        break;
-                                }
-                            } else {
-                                // remove the old value
-                                configObject.getAttributes().remove(newAttr[0]);
-
-                                // store the new value
-                                configObject.getAttributes().put(newAttr[0],
-                                        newAttr[1]);
-                            }
+                            // store the new value
+                            configObject.getAttributes().put(newAttr[0],
+                                    newAttr[1]);
                         }
 
                         // yield processing to other threads
@@ -458,7 +411,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public void commandRemove(StringTokenizer tokens,
+    public synchronized void commandRemove(StringTokenizer tokens,
             PrintWriter out) {
         // as long as there are tokens, process them
         while (tokens.hasMoreTokens()) {
@@ -495,7 +448,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public void commandStop(StringTokenizer tokens, PrintWriter out) {
+    public synchronized void commandStop(StringTokenizer tokens, PrintWriter out) {
         // as long as there are tokens, process them
         // remove port port port ...
         while (tokens.hasMoreTokens()) {
@@ -540,7 +493,7 @@ public class ControlService extends AbstractService implements IService {
      * @param out
      * @throws java.lang.Exception
      */
-    public void commandStart(StringTokenizer tokens,
+    public synchronized void commandStart(StringTokenizer tokens,
             PrintWriter out)
             throws Exception {
         // as long as there are tokens, process them
@@ -577,7 +530,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public void commandAttribute(StringTokenizer tokens,
+    public synchronized void commandAttribute(StringTokenizer tokens,
             PrintWriter out) {
         // convert the token to int
         int max = Integer.parseInt(tokens.nextToken());
@@ -597,7 +550,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public void commandStatus(StringTokenizer tokens,
+    public synchronized void commandStatus(StringTokenizer tokens,
             PrintWriter out) {
         // display status of the service
         getServiceManager().toString(out);
@@ -614,7 +567,7 @@ public class ControlService extends AbstractService implements IService {
      * @param tokens
      * @param out
      */
-    public void commandHelp(StringTokenizer tokens, PrintWriter out) {
+    public synchronized void commandHelp(StringTokenizer tokens, PrintWriter out) {
         // Display command syntax. Password not required
         out.print("COMMANDS:" + getRecordTerminator()
                 + "\tadd <service> <port>" + getRecordTerminator()

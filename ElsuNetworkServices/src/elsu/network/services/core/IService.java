@@ -21,8 +21,6 @@ public interface IService {
 
     void checkConnections();
 
-    ServiceConfig getChildConfig();
-
     ServiceListener getListener();
 
     ServiceConfig getServiceConfig();
