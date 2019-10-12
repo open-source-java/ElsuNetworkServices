@@ -438,7 +438,7 @@ public class MessageService extends AbstractService implements IService {
 			// code back to the sending service. the method continues to
 			// loop until either the service is terminated or the connection
 			// is closed or there is an exception in processing
-			for (;;) {
+			while (isRunning()) {
 				// read line from the socket stream
 				String line = in.readLine();
 
@@ -497,10 +497,6 @@ public class MessageService extends AbstractService implements IService {
 			logError(getClass().toString() + ", serve(), " + getServiceConfig().getServiceName() + ", "
 					+ ex.getMessage());
 		} finally {
-			// update the subcriber status to false to signal connection
-			// monitor to stop running if it is running
-			isSubscriberRunning(false);
-
 			// set connection status to false to signal all serving
 			// loops to exit
 			cConn.isActive(false);
@@ -522,6 +518,21 @@ public class MessageService extends AbstractService implements IService {
 			// log info for tracking
 			logInfo(getClass().toString() + ", server(), " + getServiceConfig().getServiceName() + " on port "
 					+ getServiceConfig().getConnectionPort() + ", connection closed by server");
+
+			if (isRunning() && isSubscriberRunning()) {
+				logError(getClass().toString() + ", server(), " + getServiceConfig().getServiceName() + " on port "
+						+ getServiceConfig().getConnectionPort() + ", connection closed by server");
+			}
+			
+			// remove connection - to clear the queue
+			removeConnection(cConn);			
+			isSubscriberRunning(false);
+
+			// we have exited the method, but if the service is still running
+			// restart the connection
+			if (isRunning()) {
+				checkConnections();
+			}
 		}
 	}
 
@@ -534,6 +545,10 @@ public class MessageService extends AbstractService implements IService {
 		// call the super method to perform termination; this also closes all
 		// open connections
 		super.shutdown();
+
+		// update the subcriber status to false to signal connection
+		// monitor to stop running if it is running
+		isSubscriberRunning(false);
 
 		// shutdown the writers if not null, ignore exceptions
 		if (getMessageWriter() != null) {
