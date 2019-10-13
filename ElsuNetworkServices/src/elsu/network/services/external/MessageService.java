@@ -1,4 +1,4 @@
-package elsu.network.services.system;
+package elsu.network.services.external;
 
 import elsu.common.DateUtils;
 import elsu.common.FileUtils;
@@ -39,12 +39,21 @@ public class MessageService extends AbstractService implements IService {
 	private volatile String _siteName = null;
 	// service specific data, site id of the site name
 	private volatile int _siteId = 0;
+	// connection of site for two-way comms
+	private volatile Connection _siteConnection = null;
+	private volatile String _siteMessage = "";
 	// stores the file mask - allows the files to include date or other
 	// service variables
 	private volatile String _fileMask = null;
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile int _idleTimeout = 5000;
+	// service specific data, stores the idle timeout used when connection to
+	// a host is not available
+	private volatile FileRolloverPeriodicityType _logRolloverPeriodicity = FileRolloverPeriodicityType.DAY;
+	// service specific data, stores the idle timeout used when connection to
+	// a host is not available
+	private volatile int _logRolloverFrequency = 1;
 	// service specific data, status to track if te connection maintained by the
 	// subscriber service is still running
 	private volatile boolean _isConnectionsCreatorActive = false;
@@ -127,6 +136,27 @@ public class MessageService extends AbstractService implements IService {
 					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid record.terminator.outbound, "
 					+ ex.getMessage());
 			this._recordTerminatorOutbound = "\r\n";
+		}
+		
+		String periodicity = "DAY";
+		try {
+			periodicity = getServiceConfig().getAttribute("key.service.log.rollover.periodicity").toString();
+			this._logRolloverPeriodicity = FileRolloverPeriodicityType.valueOf(periodicity);
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.log.rollover.periodicity, "
+					+ ex.getMessage());
+			this._logRolloverPeriodicity = FileRolloverPeriodicityType.DAY;
+		}
+		
+		try {
+			this._logRolloverFrequency = Integer
+					.parseInt(getServiceConfig().getAttribute("key.service.log.rollover.frequency").toString());
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.log.rollover.frequency, "
+					+ ex.getMessage());
+			this._logRolloverFrequency = 1;
 		}
 	}
 	// </editor-fold>
@@ -273,6 +303,24 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
+	 * getSiteConnection() return the current site connection established to retrieve
+	 * data.
+	 * 
+	 * @return <code>Connection</code> value of the connection.
+	 */
+	public synchronized Connection getSiteConnection() {
+		return this._siteConnection;
+	}
+
+	/**
+	 * setSiteConnection(connection) sets the current site connection established to retrieve
+	 * data.
+	 */
+	public synchronized void setSiteConnection(Connection conn) {
+		this._siteConnection = conn;
+	}
+	
+	/**
 	 * getServiceAbstractShutdown() method returns the value which when received
 	 * through the client will shutdown the service.
 	 *
@@ -371,6 +419,7 @@ public class MessageService extends AbstractService implements IService {
 
 								// add the connection to the service list
 								addConnection(client, dsConn);
+								setSiteConnection(dsConn);
 
 								// indicate that the subscriber is running
 								isSubscriberRunning(true);
@@ -467,6 +516,14 @@ public class MessageService extends AbstractService implements IService {
 							// this is a message, store it through the
 							// message writer
 							getMessageWriter().write(line + getRecordTerminatorOutbound());
+							
+							// if site connection is valid, send the info to site connection
+							if ((cConn != getSiteConnection()) && (getSiteConnection() != null)) {
+								this._siteMessage = line;
+							} else if ((cConn == getSiteConnection()) && (getSiteConnection() != null)) {
+				                out.print(this._siteMessage + getRecordTerminator());
+				                out.flush();
+							}
 						} catch (Exception ex) {
 							// increase the message error queue
 							increaseTotalMessagesErrored();
@@ -525,7 +582,8 @@ public class MessageService extends AbstractService implements IService {
 			}
 			
 			// remove connection - to clear the queue
-			removeConnection(cConn);			
+			removeConnection(cConn);
+			setSiteConnection(null);
 			isSubscriberRunning(false);
 
 			// we have exited the method, but if the service is still running
@@ -583,7 +641,8 @@ public class MessageService extends AbstractService implements IService {
 		// open the writer channels; don't use equipment id it is included in
 		// the message in the file
 		this._messageWriter = new FileChannelTextWriter(String.format(getFileMask(), "%s", "MSG"),
-				getLocalStoreDirectory() + "incomming", true);
+				getLocalStoreDirectory() + "incomming", this._logRolloverPeriodicity);
+		this._messageWriter.setRolloverFrequency(this._logRolloverFrequency);
 
         // validate the connection to the equipment
         checkConnections();

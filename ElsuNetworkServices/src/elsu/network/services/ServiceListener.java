@@ -260,6 +260,11 @@ public class ServiceListener extends Thread {
                 // if the service is still running, continue to listen for the
                 // next connection
                 if (getService().isRunning()) {
+                    // service started; log info
+                    getService().logInfo(getClass().toString() + ", run(), "
+                            + getService().getServiceConfig().getServiceName()
+                            + ", service accepting connections...");
+
                     // wait for the client to connect, when client connects, 
                     // the listener creates a socket for the new client and
                     // returns it.

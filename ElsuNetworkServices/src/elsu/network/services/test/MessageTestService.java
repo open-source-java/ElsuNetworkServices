@@ -122,6 +122,7 @@ public class MessageTestService extends AbstractService implements IService {
 
                 // yield processing to other threads
                 Thread.yield();
+                Thread.sleep(2500);
             }
         } catch (Exception ex) {
             // log error for tracking

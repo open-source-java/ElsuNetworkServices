@@ -1,6 +1,5 @@
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\core\AbstractService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\system\TimeService.java
-E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\system\MessageService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\system\ControlService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\ServiceListener.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\AbstractConnection.java
@@ -14,12 +13,13 @@ E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\servic
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\core\IService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\application\ServiceManager.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\factory\ServiceFactory.java
+E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\external\MessageService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\support\EchoService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\system\GarbageCollectionService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\core\AbstractServiceProperties.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\core\ServiceConfig.java
+E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\external\FileTransferService.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\core\ServiceType.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\application\AbstractNetworkApplication.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\core\AbstractServiceRuntimeProperties.java
 E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\application\ServiceApplication.java
-E:\home\development\opt\nbspace-mars\ElsuNetworkServices\src\elsu\network\services\system\FileTransferService.java
