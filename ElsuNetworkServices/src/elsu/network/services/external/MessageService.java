@@ -42,21 +42,31 @@ public class MessageService extends AbstractService implements IService {
 	// connection of site for two-way comms
 	private volatile Connection _siteConnection = null;
 	private volatile String _siteMessage = "";
+	private volatile String _pendingMessage = "";
 	// stores the file mask - allows the files to include date or other
 	// service variables
 	private volatile String _fileMask = null;
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile int _idleTimeout = 5000;
+	// service specific data, stores the no data timeout used when connection 
+	// has not received any data
+	private volatile int _noDataTimeout = 5000;
+	// counter to track the number of records received between each monitoring 
+	// period
+	private volatile int _recordCounter = 0;
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile FileRolloverPeriodicityType _logRolloverPeriodicity = FileRolloverPeriodicityType.DAY;
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile int _logRolloverFrequency = 1;
-	// service specific data, status to track if te connection maintained by the
+	// service specific data, status to track if the connection maintained by the
 	// subscriber service is still running
 	private volatile boolean _isConnectionsCreatorActive = false;
+	// service specific data, status to track if the data activity monitor thread 
+	// is active
+	private volatile boolean _isDataMonitorActive = false;
 	// service specific data, stores the writer channel
 	private volatile FileChannelTextWriter _messageWriter = null;
 	// output terminator for output
@@ -115,6 +125,16 @@ public class MessageService extends AbstractService implements IService {
 					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.monitor.idleTimeout, "
 					+ ex.getMessage());
 			this._idleTimeout = 5000;
+		}
+
+		try {
+			this._noDataTimeout = Integer
+					.parseInt(getServiceConfig().getAttribute("key.service.monitor.noDataTimeout").toString());
+		} catch (Exception ex) {
+			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
+					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.monitor.noDataTimeout, "
+					+ ex.getMessage());
+			this._noDataTimeout = 5000;
 		}
 
 		this._hostUri = getServiceConfig().getAttribute("key.service.site.host").toString();
@@ -191,6 +211,34 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
+	 * isConnectionsCreatorActive() method is used to track if the
+	 * checkConnections method is being processed. checkConnections method uses
+	 * a thread to create the connection to the equipment - if the thread is
+	 * running trying to connect to the equipment, then all other requests are
+	 * ignored.
+	 *
+	 * @return <code>boolean</code> value of the status of connections
+	 */
+	private synchronized boolean isDataMonitorActive() {
+		return this._isDataMonitorActive;
+	}
+
+	/**
+	 * isConnectionsCreatorActive(...) method is used to track if the
+	 * checkConnections method is being processed. checkConnections method uses
+	 * a thread to create the connection to the equipment - if the thread is
+	 * running trying to connect to the equipment, then all other requests are
+	 * ignored.
+	 *
+	 * @param value
+	 * @return <code>boolean</code> value of the status of connections
+	 */
+	private synchronized boolean isDataMonitorActive(boolean active) {
+		this._isDataMonitorActive = active;
+		return isDataMonitorActive();
+	}
+
+	/**
 	 * getConnectionTerminator() method returns the connection terminator used
 	 * to signal the connection to terminate gracefully.
 	 *
@@ -240,6 +288,40 @@ public class MessageService extends AbstractService implements IService {
 	 */
 	public synchronized int getIdleTimeout() {
 		return _idleTimeout;
+	}
+
+	/**
+	 * getNoDataTimeout() method returns the timeout value used to reset connection
+	 * with no received data. It is also used to pause the loop when trying to 
+	 * connect to the equipment and it is not responding.
+	 *
+	 * @return <code>int</code> value of the timeout
+	 */
+	public synchronized int getNoDataTimeout() {
+		return _noDataTimeout;
+	}
+	
+	/**
+	 * getRecordCounter() method returns the number of records received.
+	 * 
+	 * @return <code>int</code> value of recordsCounter
+	 */
+	public synchronized int getRecordCounter() {
+		return this._recordCounter;
+	}
+	
+	/*
+	 * increaseRecordCounter() method increases the record counter by 1.
+	 */
+	private synchronized void increaseRecordCounter() {
+		this._recordCounter++;
+	}
+	
+	/*
+	 * resetRecordCounter() method resets the record counter to 0.
+	 */
+	private synchronized void resetRecordCounter() {
+		this._recordCounter = 0;
 	}
 
 	/**
@@ -411,6 +493,9 @@ public class MessageService extends AbstractService implements IService {
 							// of memory and
 							// notification to client
 							try {
+								logInfo(getClass().toString() + ", checkConnections() - createConnections, "
+										+ getServiceConfig().getServiceName() + " on port " + getPort());
+
 								// create socket to the equipment
 								Socket client = new Socket(getHostUri(), getPort());
 
@@ -428,7 +513,7 @@ public class MessageService extends AbstractService implements IService {
 								isSubscriberRunning(false);
 
 								// log error for tracking
-								logError(getClass().toString() + ", checkConnections(), "
+								logError(getClass().toString() + ", checkConnections() - createConnections, "
 										+ getServiceConfig().getServiceName() + ", error creating connection "
 										+ getServiceConfig().getServiceName() + " on port " + getPort() + ", "
 										+ ex.getMessage());
@@ -451,6 +536,82 @@ public class MessageService extends AbstractService implements IService {
 
 			// start the thread to create connection for the service.
 			tConnections.start();
+		}
+		
+		// create a thread to monitor the connection activity for data
+		if (!isDataMonitorActive()) {
+			// update thread indicator to ensure multiple threads are not
+			// spawned
+			isDataMonitorActive(true);
+			
+			// thread to create connection to the equipment
+			Thread tMonitor = new Thread(new Runnable() {
+				// thread run method which is executed when thread is started
+				@Override
+				public void run() {
+					// capture all exceptions to ensure proper handling of
+					// memory and
+					// notification to client
+					try {
+						// if the service is running and subscriber is not
+						// running then try to create the connection
+						while (isRunning()) {
+							// yield processing to other threads for specified
+							// time, any exceptions are ignored
+							try {
+								Thread.sleep(getNoDataTimeout());
+							} catch (Exception exi) {
+							}
+
+							// check for data and reset only if subscriber is connected
+							if (isSubscriberRunning()) {
+								logInfo("CS -> BCS, checking for data, " + getNoDataTimeout() + ", " + getRecordCounter());
+
+								try {
+									// if no data received, reset the connection
+									if (getRecordCounter() == 0) {
+										logInfo(getClass().toString() + ", checkConnections() - noDataTimeout, "
+												+ getServiceConfig().getServiceName() + " on port " + getPort());
+	
+										Connection dsConn = getSiteConnection();
+	
+										if (dsConn != null) {
+											// set connection status to false to signal all serving
+											// loops to exit
+											dsConn.isActive(false);
+											
+											// remove connection - to clear the queue
+											removeConnection(dsConn);
+											setSiteConnection(null);
+											isSubscriberRunning(false);
+		
+											// restart the connection
+											if (isRunning()) {
+												checkConnections();
+											}
+										}
+									} else {
+										resetRecordCounter();
+									}
+								} catch (Exception ex) {
+									// log error for tracking
+									logError(getClass().toString() + ", checkConnections() - noDataTimeout, "
+											+ getServiceConfig().getServiceName() + ", error shutting down and restarting connection "
+											+ getServiceConfig().getServiceName() + " on port " + getPort() + ", "
+											+ ex.getMessage());
+								}
+							}
+						}
+					} catch (Exception exi) {
+					} finally {
+						// connection was created, reset the indicator
+						isDataMonitorActive(false);
+					}
+				}
+			});
+
+			// start the thread to create connection for the service.
+			tMonitor.start();
 		}
 	}
 
@@ -498,13 +659,14 @@ public class MessageService extends AbstractService implements IService {
 				} else {
 					// increase the total # of incomming messages
 					increaseTotalMessagesReceived();
-
+					increaseRecordCounter();
+					
 					// read the incomming message, parse it, validate it, and
 					// then store it for subscriber to pickup and deliver to
 					// the equipment it is connected to.
 					try {
 						// log info for debugging
-						logDebug("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + line);
+						logInfo("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + getRecordCounter() + ", " + line);
 
 						// parse the data based on the field delimiter
 						// String[] parseData = line.split(Pattern.quote(
@@ -519,10 +681,17 @@ public class MessageService extends AbstractService implements IService {
 							
 							// if site connection is valid, send the info to site connection
 							if ((cConn != getSiteConnection()) && (getSiteConnection() != null)) {
-								this._siteMessage = line;
+								this._pendingMessage = line;
 							} else if ((cConn == getSiteConnection()) && (getSiteConnection() != null)) {
-				                out.print(this._siteMessage + getRecordTerminator());
-				                out.flush();
+								// increase the message sent count
+								increaseTotalMessagesSent();
+
+								if (!this._pendingMessage.isEmpty()) {
+									out.print(this._pendingMessage + getRecordTerminator());
+									out.flush();
+									
+									this._pendingMessage = "";
+								}
 							}
 						} catch (Exception ex) {
 							// increase the message error queue
@@ -533,9 +702,6 @@ public class MessageService extends AbstractService implements IService {
 									+ getStatusInvalidContent() + ", writing to output stream, " + ex.getMessage());
 
 						}
-
-						// increase the message sent count
-						increaseTotalMessagesSent();
 					} catch (Exception ex) {
 						// increase the message error queue
 						increaseTotalMessagesErrored();

@@ -8,10 +8,11 @@ elsu\network\application\AbstractServiceManager.class
 elsu\network\application\ServiceManager.class
 elsu\network\services\AbstractConnection.class
 elsu\network\services\system\WatcherService.class
-elsu\network\services\core\ServiceConfig.class
 elsu\network\services\support\StateService.class
+elsu\network\services\core\ServiceConfig.class
 elsu\network\services\core\AbstractServiceProperties.class
 elsu\network\services\external\FileTransferService.class
+elsu\network\services\external\MessageService$2.class
 elsu\network\core\ServiceType.class
 elsu\network\core\ServiceStartupType.class
 elsu\network\services\test\ReverseService.class

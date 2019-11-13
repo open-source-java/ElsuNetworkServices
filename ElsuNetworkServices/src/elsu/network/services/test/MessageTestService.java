@@ -4,7 +4,7 @@ import elsu.network.application.*;
 import elsu.network.services.core.*;
 import elsu.network.services.*;
 import java.io.*;
-import java.util.Date;
+import java.util.*;
 
 /**
  *
@@ -114,7 +114,7 @@ public class MessageTestService extends AbstractService implements IService {
                 //increaseTotalMessagesReceived();
 
                 // send the incomming data back to the client (echo)
-                out.print(new Date() + getRecordTerminator());
+                out.print(new Date() + ", " + UUID.randomUUID() + getRecordTerminator());
                 out.flush();
 
                 // increase the total # of sent messages
