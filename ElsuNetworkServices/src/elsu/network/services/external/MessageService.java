@@ -49,10 +49,10 @@ public class MessageService extends AbstractService implements IService {
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile int _idleTimeout = 5000;
-	// service specific data, stores the no data timeout used when connection 
+	// service specific data, stores the no data timeout used when connection
 	// has not received any data
 	private volatile int _noDataTimeout = 5000;
-	// counter to track the number of records received between each monitoring 
+	// counter to track the number of records received between each monitoring
 	// period
 	private volatile int _recordCounter = 0;
 	// service specific data, stores the idle timeout used when connection to
@@ -61,10 +61,12 @@ public class MessageService extends AbstractService implements IService {
 	// service specific data, stores the idle timeout used when connection to
 	// a host is not available
 	private volatile int _logRolloverFrequency = 1;
-	// service specific data, status to track if the connection maintained by the
+	// service specific data, status to track if the connection maintained by
+	// the
 	// subscriber service is still running
 	private volatile boolean _isConnectionsCreatorActive = false;
-	// service specific data, status to track if the data activity monitor thread 
+	// service specific data, status to track if the data activity monitor
+	// thread
 	// is active
 	private volatile boolean _isDataMonitorActive = false;
 	// service specific data, stores the writer channel
@@ -140,8 +142,7 @@ public class MessageService extends AbstractService implements IService {
 		this._hostUri = getServiceConfig().getAttribute("key.service.site.host").toString();
 
 		try {
-			this._port = Integer
-					.parseInt(getServiceConfig().getAttribute("key.service.site.port").toString());
+			this._port = Integer.parseInt(getServiceConfig().getAttribute("key.service.site.port").toString());
 		} catch (Exception ex) {
 			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
 					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.site.port, "
@@ -150,32 +151,33 @@ public class MessageService extends AbstractService implements IService {
 		}
 
 		try {
-			this._recordTerminatorOutbound = getServiceConfig().getAttribute("key.record.terminator.outbound").toString();
+			this._recordTerminatorOutbound = getServiceConfig().getAttribute("key.record.terminator.outbound")
+					.toString();
 		} catch (Exception ex) {
 			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
 					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid record.terminator.outbound, "
 					+ ex.getMessage());
 			this._recordTerminatorOutbound = "\r\n";
 		}
-		
+
 		String periodicity = "DAY";
 		try {
 			periodicity = getServiceConfig().getAttribute("key.service.log.rollover.periodicity").toString();
 			this._logRolloverPeriodicity = FileRolloverPeriodicityType.valueOf(periodicity);
 		} catch (Exception ex) {
 			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
-					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.log.rollover.periodicity, "
-					+ ex.getMessage());
+					+ " on port " + getServiceConfig().getConnectionPort()
+					+ ", invalid service.log.rollover.periodicity, " + ex.getMessage());
 			this._logRolloverPeriodicity = FileRolloverPeriodicityType.DAY;
 		}
-		
+
 		try {
 			this._logRolloverFrequency = Integer
 					.parseInt(getServiceConfig().getAttribute("key.service.log.rollover.frequency").toString());
 		} catch (Exception ex) {
 			logError(getClass().toString() + ", initializeLocalProperties(), " + getServiceConfig().getServiceName()
-					+ " on port " + getServiceConfig().getConnectionPort() + ", invalid service.log.rollover.frequency, "
-					+ ex.getMessage());
+					+ " on port " + getServiceConfig().getConnectionPort()
+					+ ", invalid service.log.rollover.frequency, " + ex.getMessage());
 			this._logRolloverFrequency = 1;
 		}
 	}
@@ -291,16 +293,16 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
-	 * getNoDataTimeout() method returns the timeout value used to reset connection
-	 * with no received data. It is also used to pause the loop when trying to 
-	 * connect to the equipment and it is not responding.
+	 * getNoDataTimeout() method returns the timeout value used to reset
+	 * connection with no received data. It is also used to pause the loop when
+	 * trying to connect to the equipment and it is not responding.
 	 *
 	 * @return <code>int</code> value of the timeout
 	 */
 	public synchronized int getNoDataTimeout() {
 		return _noDataTimeout;
 	}
-	
+
 	/**
 	 * getRecordCounter() method returns the number of records received.
 	 * 
@@ -309,14 +311,14 @@ public class MessageService extends AbstractService implements IService {
 	public synchronized int getRecordCounter() {
 		return this._recordCounter;
 	}
-	
+
 	/*
 	 * increaseRecordCounter() method increases the record counter by 1.
 	 */
 	private synchronized void increaseRecordCounter() {
 		this._recordCounter++;
 	}
-	
+
 	/*
 	 * resetRecordCounter() method resets the record counter to 0.
 	 */
@@ -385,8 +387,8 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
-	 * getSiteConnection() return the current site connection established to retrieve
-	 * data.
+	 * getSiteConnection() return the current site connection established to
+	 * retrieve data.
 	 * 
 	 * @return <code>Connection</code> value of the connection.
 	 */
@@ -395,13 +397,13 @@ public class MessageService extends AbstractService implements IService {
 	}
 
 	/**
-	 * setSiteConnection(connection) sets the current site connection established to retrieve
-	 * data.
+	 * setSiteConnection(connection) sets the current site connection
+	 * established to retrieve data.
 	 */
 	public synchronized void setSiteConnection(Connection conn) {
 		this._siteConnection = conn;
 	}
-	
+
 	/**
 	 * getServiceAbstractShutdown() method returns the value which when received
 	 * through the client will shutdown the service.
@@ -409,7 +411,7 @@ public class MessageService extends AbstractService implements IService {
 	 * @return <code>String</code> value of the shutdown string
 	 */
 	public synchronized String getServiceShutdown() {
-        return this._serviceShutdown;
+		return this._serviceShutdown;
 	}
 
 	/**
@@ -537,13 +539,13 @@ public class MessageService extends AbstractService implements IService {
 			// start the thread to create connection for the service.
 			tConnections.start();
 		}
-		
+
 		// create a thread to monitor the connection activity for data
 		if (!isDataMonitorActive()) {
 			// update thread indicator to ensure multiple threads are not
 			// spawned
 			isDataMonitorActive(true);
-			
+
 			// thread to create connection to the equipment
 			Thread tMonitor = new Thread(new Runnable() {
 				// thread run method which is executed when thread is started
@@ -563,28 +565,32 @@ public class MessageService extends AbstractService implements IService {
 							} catch (Exception exi) {
 							}
 
-							// check for data and reset only if subscriber is connected
+							// check for data and reset only if subscriber is
+							// connected
 							if (isSubscriberRunning()) {
-								logInfo("CS -> BCS, checking for data, " + getNoDataTimeout() + ", " + getRecordCounter());
+								logDebug("CS -> BCS, checking for data, " + getNoDataTimeout() + ", "
+										+ getRecordCounter());
 
 								try {
 									// if no data received, reset the connection
 									if (getRecordCounter() == 0) {
 										logInfo(getClass().toString() + ", checkConnections() - noDataTimeout, "
 												+ getServiceConfig().getServiceName() + " on port " + getPort());
-	
+
 										Connection dsConn = getSiteConnection();
-	
+
 										if (dsConn != null) {
-											// set connection status to false to signal all serving
+											// set connection status to false to
+											// signal all serving
 											// loops to exit
 											dsConn.isActive(false);
-											
-											// remove connection - to clear the queue
+
+											// remove connection - to clear the
+											// queue
 											removeConnection(dsConn);
 											setSiteConnection(null);
 											isSubscriberRunning(false);
-		
+
 											// restart the connection
 											if (isRunning()) {
 												checkConnections();
@@ -596,7 +602,8 @@ public class MessageService extends AbstractService implements IService {
 								} catch (Exception ex) {
 									// log error for tracking
 									logError(getClass().toString() + ", checkConnections() - noDataTimeout, "
-											+ getServiceConfig().getServiceName() + ", error shutting down and restarting connection "
+											+ getServiceConfig().getServiceName()
+											+ ", error shutting down and restarting connection "
 											+ getServiceConfig().getServiceName() + " on port " + getPort() + ", "
 											+ ex.getMessage());
 								}
@@ -660,13 +667,14 @@ public class MessageService extends AbstractService implements IService {
 					// increase the total # of incomming messages
 					increaseTotalMessagesReceived();
 					increaseRecordCounter();
-					
+
 					// read the incomming message, parse it, validate it, and
 					// then store it for subscriber to pickup and deliver to
 					// the equipment it is connected to.
 					try {
 						// log info for debugging
-						logInfo("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + getRecordCounter() + ", " + line);
+						logDebug("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + getRecordCounter()
+								+ ", " + line);
 
 						// parse the data based on the field delimiter
 						// String[] parseData = line.split(Pattern.quote(
@@ -678,18 +686,24 @@ public class MessageService extends AbstractService implements IService {
 							// this is a message, store it through the
 							// message writer
 							getMessageWriter().write(line + getRecordTerminatorOutbound());
-							
-							// if site connection is valid, send the info to site connection
+
+							// if site connection is valid, send the info to
+							// site connection
 							if ((cConn != getSiteConnection()) && (getSiteConnection() != null)) {
+								logDebug("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + getRecordCounter()
+								+ ", (server command received), " + line);
 								this._pendingMessage = line;
 							} else if ((cConn == getSiteConnection()) && (getSiteConnection() != null)) {
 								// increase the message sent count
 								increaseTotalMessagesSent();
 
 								if (!this._pendingMessage.isEmpty()) {
+									logDebug("CS -> BCS, " + getServiceConfig().getConnectionPort() + ", " + getRecordCounter()
+									+ ", (server command forwarded), " + line);
+
 									out.print(this._pendingMessage + getRecordTerminator());
 									out.flush();
-									
+
 									this._pendingMessage = "";
 								}
 							}
@@ -746,7 +760,7 @@ public class MessageService extends AbstractService implements IService {
 				logError(getClass().toString() + ", server(), " + getServiceConfig().getServiceName() + " on port "
 						+ getServiceConfig().getConnectionPort() + ", connection closed by server");
 			}
-			
+
 			// remove connection - to clear the queue
 			removeConnection(cConn);
 			setSiteConnection(null);
@@ -801,8 +815,8 @@ public class MessageService extends AbstractService implements IService {
 		// are invalid and should not be processed
 		// 20150314 ssd added mkdirs to prevent errors in processing
 		new File(getLocalStoreDirectory() + "incomming").mkdirs();
-		//FileUtils.deleteFiles(getLocalStoreDirectory() + "incomming\\",
-		//		String.format(getFileMask(), ".*", getSiteName() + "_CS"), false);
+		// FileUtils.deleteFiles(getLocalStoreDirectory() + "incomming\\",
+		// String.format(getFileMask(), ".*", getSiteName() + "_CS"), false);
 
 		// open the writer channels; don't use equipment id it is included in
 		// the message in the file
@@ -810,8 +824,8 @@ public class MessageService extends AbstractService implements IService {
 				getLocalStoreDirectory() + "incomming", this._logRolloverPeriodicity);
 		this._messageWriter.setRolloverFrequency(this._logRolloverFrequency);
 
-        // validate the connection to the equipment
-        checkConnections();
+		// validate the connection to the equipment
+		checkConnections();
 	}
 	// </editor-fold>
 }
